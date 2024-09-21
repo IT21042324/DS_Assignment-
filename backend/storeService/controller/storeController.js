@@ -1,6 +1,6 @@
 // Importing Store model
 let Store = require("../models/Store");
-let logger = require('../logger');
+let logger = require("../logger");
 
 // Creating a new store in the database
 const createStore = async (req, res) => {
@@ -32,7 +32,7 @@ const createStore = async (req, res) => {
 const getAllStore = async (req, res) => {
   await Store.find()
     .then((store) => {
-      logger.info('All stores retrieved successfully.');
+      logger.info("All stores retrieved successfully.");
       // Sending all store objects as response
       res.json(store);
     })
@@ -47,26 +47,27 @@ const getAllStore = async (req, res) => {
 const updateStore = async (req, res) => {
   const { storeName, location, storeID } = req.body;
 
-  // Creating an object with the updated values
-  const updateStore = {
-    storeName,
-    location,
-  };
+  if (!mongoose.Types.ObjectId.isValid(storeID)) {
+    logger.error(`Invalid store ID: ${storeID}`);
+    return res.status(400).json({ error: "Invalid store ID" });
+  }
 
   try {
-    // Finding the store by the given ID and updating the store details with the new values
-    const updatedStore = await Store.findOneAndUpdate(
-      { _id: storeID },
-      updateStore,
-      { new: true }
-    );
+    const store = await Store.findById(storeID);
+    if (!store) {
+      logger.error(`Store not found: ${storeID}`);
+      return res.status(404).json({ error: "Store not found" });
+    }
+
+    store.storeName = storeName;
+    store.location = location;
+
+    const updatedStore = await store.save();
     logger.info(`Store updated successfully: ${updatedStore}`);
-    // Sending the updated store object as response
-    res.send(updatedStore);
+    res.json(updatedStore);
   } catch (err) {
     logger.error(`Error updating store: ${err.message}`);
-    // If there is an error, sending the error message as response
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -126,7 +127,9 @@ const getStoreItemCount = async (req, res) => {
       "-storeItem.itemImage"
     );
 
-    logger.info(`Store item count retrieved successfully: ${data.storeItem.length}`);
+    logger.info(
+      `Store item count retrieved successfully: ${data.storeItem.length}`
+    );
     res.json({ itemCount: data.storeItem.length });
   } catch (err) {
     logger.error(`Error retrieving store item count: ${err.message}`);
@@ -138,24 +141,26 @@ const getStoreItemCount = async (req, res) => {
 const addStoreItem = async (req, res) => {
   const { item, storeID } = req.body;
 
+  if (!mongoose.Types.ObjectId.isValid(storeID)) {
+    logger.error(`Invalid store ID: ${storeID}`);
+    return res.status(400).json({ error: "Invalid store ID" });
+  }
+
   try {
-    const store = await Store.findOne({ _id: storeID });
+    const store = await Store.findById(storeID);
+    if (!store) {
+      logger.error(`Store not found: ${storeID}`);
+      return res.status(404).json({ error: "Store not found" });
+    }
 
-    var itemArray = store.storeItem;
-
-    itemArray.push(item);
-
-    const updatedStore = await Store.findOneAndUpdate(
-      { _id: storeID },
-      { storeItem: itemArray },
-      { new: true }
-    );
+    store.storeItem.push(item);
+    const updatedStore = await store.save();
 
     logger.info(`Item added to store successfully: ${updatedStore}`);
-    res.send(updatedStore);
+    res.json(updatedStore);
   } catch (err) {
     logger.error(`Error adding item to store: ${err.message}`);
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -163,32 +168,37 @@ const addStoreItem = async (req, res) => {
 const modifyStoreItem = async (req, res) => {
   const { item, storeID } = req.body;
 
+  if (!mongoose.Types.ObjectId.isValid(storeID)) {
+    logger.error(`Invalid store ID: ${storeID}`);
+    return res.status(400).json({ error: "Invalid store ID" });
+  }
+
   try {
-    const store = await Store.findOne({ _id: storeID });
+    const store = await Store.findById(storeID);
+    if (!store) {
+      logger.error(`Store not found: ${storeID}`);
+      return res.status(404).json({ error: "Store not found" });
+    }
 
-    var itemArray = store.storeItem;
-
-    var itemArray = itemArray.map((itm) => {
-      if (itm._id === item._id) {
-        // Replace elements in itm with elements from item
-        return Object.assign({}, itm, item);
-      } else {
-        // Return original object
-        return itm;
-      }
-    });
-
-    const updatedStore = await Store.findOneAndUpdate(
-      { _id: storeID },
-      { storeItem: itemArray },
-      { new: true }
+    const itemIndex = store.storeItem.findIndex(
+      (itm) => itm._id.toString() === item._id
     );
+    if (itemIndex === -1) {
+      logger.error(`Item not found in store: ${item._id}`);
+      return res.status(404).json({ error: "Item not found in store" });
+    }
+
+    store.storeItem[itemIndex] = {
+      ...store.storeItem[itemIndex].toObject(),
+      ...item,
+    };
+    const updatedStore = await store.save();
 
     logger.info(`Store item modified successfully: ${updatedStore}`);
-    res.send(updatedStore);
+    res.json(updatedStore);
   } catch (err) {
     logger.error(`Error modifying store item: ${err.message}`);
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -196,55 +206,58 @@ const modifyStoreItem = async (req, res) => {
 const deleteStoreItem = async (req, res) => {
   const { storeID, itemID } = req.body;
 
+  if (
+    !mongoose.Types.ObjectId.isValid(storeID) ||
+    !mongoose.Types.ObjectId.isValid(itemID)
+  ) {
+    logger.error(`Invalid store ID or item ID: ${storeID}, ${itemID}`);
+    return res.status(400).json({ error: "Invalid store ID or item ID" });
+  }
+
   try {
-    const store = await Store.findOne({ _id: storeID });
+    const store = await Store.findById(storeID);
+    if (!store) {
+      logger.error(`Store not found: ${storeID}`);
+      return res.status(404).json({ error: "Store not found" });
+    }
 
-    const itemArray = store.storeItem;
-
-    var newArray = itemArray.filter((itm) => itm._id !== itemID);
-
-    const updatedStore = await Store.findOneAndUpdate(
-      { _id: storeID },
-      { storeItem: newArray },
-      { new: true }
+    store.storeItem = store.storeItem.filter(
+      (itm) => itm._id.toString() !== itemID
     );
+    const updatedStore = await store.save();
 
     logger.info(`Item deleted from store successfully: ${updatedStore}`);
-    res.send(updatedStore);
+    res.json(updatedStore);
   } catch (err) {
     logger.error(`Error deleting item from store: ${err.message}`);
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
 // Add store review
 const addReview = async (req, res) => {
-  // To this data is just passed through the body (all of them)
-  const { review, storeID, userID, userName, rating } = req.body; //_id is userID
+  const { review, storeID, userID, userName, rating } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(storeID)) {
+    logger.error(`Invalid store ID: ${storeID}`);
+    return res.status(400).json({ error: "Invalid store ID" });
+  }
 
   try {
-    const insertReview = async (callback) => {
-      const store = await Store.findOne({ _id: storeID });
-      if (store) await callback(store.reviews); //item.reviews is an array
-    };
-
-    await insertReview(callBack);
-
-    async function callBack(descArr) {
-      //an array is passed in the parameter
-
-      descArr.push({ userID, userName, rating, review });
-
-      const data = await Store.findOneAndUpdate(
-        { _id: storeID },
-        { reviews: descArr }
-      );
-      logger.info(`Review added successfully: ${data}`);
-      res.json(data);
+    const store = await Store.findById(storeID);
+    if (!store) {
+      logger.error(`Store not found: ${storeID}`);
+      return res.status(404).json({ error: "Store not found" });
     }
+
+    store.reviews.push({ userID, userName, rating, review });
+    const updatedStore = await store.save();
+
+    logger.info(`Review added successfully: ${updatedStore}`);
+    res.json(updatedStore);
   } catch (err) {
     logger.error(`Error adding review: ${err.message}`);
-    res.json(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
