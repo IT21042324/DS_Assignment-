@@ -6,7 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useBackendAPI } from "../context/useBackendAPI";
 import { useSellerOrderContext } from "../context/useSellerOrderContext";
 import { UseUserContext } from "../context/useUserContext";
@@ -40,10 +40,11 @@ function DashWrapper() {
     }
   }, [mechantIsLoggedIn]);
 
+  const navigate = useNavigate();
+
   // Define a function to logout the user
   const logoutFunction = () => {
     // Set merchantIsLoggedIn state to false
-    setMerchantIsLoggedIn(false);
     const logoutStatus = clearOrderState();
 
     setOrders([]);
@@ -51,7 +52,11 @@ function DashWrapper() {
     orderCount = 0;
     itemCount = 0;
 
-    if (logoutStatus) alert("Logged Out");
+    if (logoutStatus) {
+      alert("Logged Out");
+      navigate("/", { replace: true });
+      setMerchantIsLoggedIn(false);
+    }
   };
 
   //To change the status of the order
