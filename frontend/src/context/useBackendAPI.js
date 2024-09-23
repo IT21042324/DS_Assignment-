@@ -293,7 +293,7 @@ export function useBackendAPI() {
       try {
         const { data } = await itemApi.post("/addItem/", product);
 
-        if (data._id)
+        if (data && data?._id)
           await storeApi.patch("/updateItem/", {
             storeID: user1[0].storeID,
             item: data,

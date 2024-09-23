@@ -1,8 +1,8 @@
-import jwt from "jsonwebtoken";
-import userModel from "../models/User.js";
 import crypto from "crypto";
-import logger from "../logger.js"; // Import logger
+import jwt from "jsonwebtoken";
 import validator from "validator";
+import logger from "../logger.js"; // Import logger
+import userModel from "../models/User.js";
 
 // To generate a token
 const createToken = (id) => {
@@ -52,8 +52,11 @@ const userLogin = async (req, res) => {
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
+    // Exclude sensitive fields from the response by renaming 'password' to 'hashedPassword'
+    const { password: hashedPassword, ...safeUser } = user.toObject();
+
     logger.info("User login successful", { userID: user._id });
-    res.status(200).json({ ...user.toObject() });
+    res.status(200).json({ ...safeUser });
   } catch (err) {
     logger.error("User login failed", { error: err.message });
     res.status(401).json({ err: err.message });
@@ -83,7 +86,7 @@ const userSignUp = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 3 * 24 * 60 * 60 * 1000,
+      maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
     });
 
     // Set the CSRF token as a non-HttpOnly cookie
@@ -94,8 +97,11 @@ const userSignUp = async (req, res) => {
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
+    // Exclude sensitive fields from the response
+    const { password: hashedPassword, ...safeUser } = user.toObject();
+
     logger.info("User signup successful", { userID: user._id });
-    res.status(201).json({ ...user.toObject() });
+    res.status(201).json({ ...safeUser });
   } catch (err) {
     logger.error("User signup failed", { error: err.message });
     res.status(400).json({ err: err.message });
@@ -107,13 +113,16 @@ const getAllUsers = async (req, res) => {
   try {
     logger.info("Fetching all users");
 
-    const users = await userModel.find().select("-image");
+    // Exclude sensitive fields such as password and googleAuthAccessToken
+    const users = await userModel
+      .find()
+      .select("-password -googleAuthAccessToken -image");
     logger.info("Users fetched successfully", { count: users.length });
 
     res.json({ users, userCount: users.length });
   } catch (err) {
     logger.error("Error fetching users", { error: err.message });
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -139,8 +148,11 @@ const updateUser = async (req, res) => {
     user.image = image;
     await user.save();
 
+    // Exclude sensitive fields from the response
+    const { password, ...safeUser } = user.toObject();
+
     logger.info("User updated successfully", { userId });
-    res.json(user);
+    res.json({ ...safeUser });
   } catch (err) {
     logger.error("Error updating user", { userId, error: err.message });
     res.status(500).json({ error: err.message });
@@ -153,14 +165,24 @@ const deleteUser = async (req, res) => {
     logger.info("Deleting user", { userID: req.params.id });
 
     const data = await userModel.findByIdAndDelete(req.params.id);
+
+    if (!data) {
+      logger.error("User not found", { userID: req.params.id });
+      return res.status(404).json({ error: "User not found" });
+    }
+
     logger.info("User deleted successfully", { userID: req.params.id });
-    res.json(data);
+
+    // Exclude sensitive fields before sending the response
+    const { password, googleAuthAccessToken, ...safeUser } = data.toObject();
+
+    res.json(safeUser);
   } catch (err) {
     logger.error("Error deleting user", {
       userID: req.params.id,
       error: err.message,
     });
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -170,12 +192,17 @@ const getOneUser = async (req, res) => {
   logger.info("Fetching user by ID and role", { userID: id, role });
 
   try {
-    const user = await userModel.find({ _id: id, role });
+    const user = await userModel.findOne({ _id: id, role }).select("-password");
+    if (!user) {
+      logger.error("User not found", { userID: id });
+      return res.status(404).json({ error: "User not found" });
+    }
+
     logger.info("User fetched successfully", { userID: id });
     res.status(200).json(user);
   } catch (err) {
     logger.error("Error fetching user", { userID: id, error: err.message });
-    res.send(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -203,7 +230,11 @@ const updateUserStore = async (req, res) => {
     await user.save();
 
     logger.info("User's store updated successfully", { userID, storeID });
-    res.json(user);
+
+    // Exclude sensitive fields from the response
+    const { password, ...safeUser } = user.toObject();
+
+    res.json(safeUser);
   } catch (err) {
     logger.error("Error updating user's store", {
       userID,
@@ -258,7 +289,6 @@ const retrieveGoogleAccessToken = async (req, res) => {
   }
 };
 
-
 const setGoogleAccessToken = async (req, res) => {
   const { userName, role, googleAuthAccessToken } = req.body;
 
@@ -303,17 +333,16 @@ const setGoogleAccessToken = async (req, res) => {
   }
 };
 
-
 // Export functions for use in other files
 export {
-  userLogin,
-  userSignUp,
-  getAllUsers,
-  updateUser,
-  getOneUser,
   deleteUser,
+  getAllUsers,
+  getOneUser,
   getUserCount,
-  updateUserStore,
   retrieveGoogleAccessToken,
   setGoogleAccessToken,
+  updateUser,
+  updateUserStore,
+  userLogin,
+  userSignUp,
 };

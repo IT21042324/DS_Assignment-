@@ -2,20 +2,16 @@ import { PayPalButtons } from "@paypal/react-paypal-js";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBackendAPI } from "../context/useBackendAPI";
-export function PayPalCheckoutButton(props) {
+
+export function PayPalCheckoutButton({ product }) {
   const { purchaseItem } = useBackendAPI();
-
-  const { product } = props;
-
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
-  const usdAmount = parseFloat((product.price / 319.67).toFixed(2));
+  const usdAmount = parseFloat((product.price / 300.0).toFixed(2));
 
-  const handleApprove = async (orderId) => {
-    //To convert the lkr to usd
-
+  const handleApprove = async () => {
     await purchaseItem({ total: usdAmount });
   };
 
@@ -38,9 +34,8 @@ export function PayPalCheckoutButton(props) {
           });
         }}
         onApprove={async (data, actions) => {
-          const order = await actions.order.capture();
-
-          handleApprove(data.orderID);
+          await actions.order.capture();
+          handleApprove();
         }}
         onCancel={() => {
           alert("Payment Cancelled");

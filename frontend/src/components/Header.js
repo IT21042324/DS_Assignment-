@@ -24,7 +24,6 @@ function Header() {
 
   // Logout function
   const logoutFunction = () => logoutUser();
-  console.log(profilePic);
 
   useEffect(() => {
     if (user?.image) {

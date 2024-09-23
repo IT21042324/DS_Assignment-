@@ -45,8 +45,7 @@ const postItem = async (req, res) => {
     logger.info("Item added successfully", { itemName, storeID });
     res.json(data);
   } catch (err) {
-    console.log(err);
-    // logger.error("Error adding item", { error: err.message });
+    logger.error("Error adding item", { error: err.message });
     res.status(500).json(err.message);
   }
 };

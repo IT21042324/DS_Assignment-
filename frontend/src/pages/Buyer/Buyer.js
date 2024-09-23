@@ -65,7 +65,7 @@ export default function Buyer({ UseUserContext, UseStoreContext }) {
       orderID: selectedOrderId,
       storeID,
       rating,
-      review: reviewDesc.current.value,
+      review: reviewDesc?.current?.value,
     });
 
     if (data) {
@@ -239,7 +239,7 @@ export default function Buyer({ UseUserContext, UseStoreContext }) {
                                   </div>
                                 </div>
                                 <h4 className="step-title">Order Dispatched</h4>
-                              </div>{" "}
+                              </div>
                               <div
                                 className={`step ${
                                   statusValue > 2 ? "completed" : ""

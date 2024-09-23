@@ -60,30 +60,36 @@ export default function Item(props) {
 
   const { getUser } = props.UseUserContext();
   const user = getUser();
+
   //To submit the user review
   const submitProductReview = async (e) => {
     e.preventDefault();
 
-    const data = await addReviewProduct({
-      itemID: selectedItemID,
-      rating: addedRating,
-      review: reviewDesc.current.value,
-    });
-
-    if (data) {
-      handleClosePopup();
-      alert("Review added successfully!");
-
-      itemDispatch({
-        type: "AddReview",
-        payload: {
-          _id: data._id,
-          rating: addedRating,
-          review: reviewDesc.current.value,
-          userID: user._id,
-          userName: user.userName,
-        },
+    // Ensure reviewDesc.current is not null
+    if (reviewDesc.current && reviewDesc.current.value) {
+      const data = await addReviewProduct({
+        itemID: selectedItemID,
+        rating: addedRating,
+        review: reviewDesc.current.value,
       });
+
+      if (data) {
+        handleClosePopup();
+        alert("Review added successfully!");
+
+        itemDispatch({
+          type: "AddReview",
+          payload: {
+            _id: data._id,
+            rating: addedRating,
+            review: reviewDesc.current.value,
+            userID: user._id,
+            userName: user.userName,
+          },
+        });
+      }
+    } else {
+      alert("Please provide a review description.");
     }
   };
 
