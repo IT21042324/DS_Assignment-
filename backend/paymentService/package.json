@@ -20,6 +20,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-validator": "^7.2.0",
+    "helmet": "^7.1.0",
     "http-errors": "^2.0.0",
     "https-error": "^1.0.2",
     "https-errors": "^2.0.0",

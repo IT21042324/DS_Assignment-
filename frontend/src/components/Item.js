@@ -6,9 +6,9 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { useBackendAPI } from "../context/useBackendAPI";
+import { ContactListPopupModel } from "./ContactListPopupModel";
 import ReviewContainer from "./ReviewContainer";
 import StarRating from "./StarRating";
-import { ContactListPopupModel } from "./ContactListPopupModel";
 
 export default function Item(props) {
   // importing cartContext, dispatch, and info from the cartContext

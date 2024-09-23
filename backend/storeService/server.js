@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config(); // Load environment variables from .env file
 const cookieParser = require("cookie-parser"); // Add this line
+const helmet = require("helmet"); // Import helmet for security headers
 
 // Create an Express app
 const app = express();
@@ -25,6 +26,8 @@ app.use(
     credentials: true, // Allow credentials (cookies, etc.)
   })
 );
+
+app.use(helmet()); // Use helmet to set security headers // Use helmet to set security headers
 
 const PORT = process.env.PORT; // Get port number from environment variables
 const URI = process.env.URI; // Get MongoDB URI from environment variables

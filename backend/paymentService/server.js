@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const cookieParser = require("cookie-parser"); // Add this line
+const helmet = require("helmet"); // Import helmet for security headers
 
 // Creating an Express.js app
 const app = express();
@@ -26,6 +27,8 @@ app.use(
     credentials: true, // Allow credentials (cookies, etc.)
   })
 );
+// Use helmet to set security headers
+app.use(helmet()); // This will include the 'X-Content-Type-Options: nosniff' header
 
 const PORT = process.env.PORT; // Get port number from environment variables
 const URI = process.env.URI; // Get MongoDB URI from environment variables

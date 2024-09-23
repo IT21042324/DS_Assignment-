@@ -6,6 +6,7 @@ import fs from "fs";
 import https from "https";
 import mongoose from "mongoose";
 import userRouter from "./routes/user.js";
+import helmet from "helmet";
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +31,8 @@ app.use(
     credentials: true, // Allow credentials (cookies, etc.)
   })
 );
+
+app.use(helmet()); // Use helmet to set security headers // Use helmet to set security headers
 
 // SSL certificate options
 const sslOptions = {
