@@ -18,6 +18,7 @@ export default function Item(props) {
   const itemDispatch = props.itemDispatch;
 
   const [selectedItem, setSelectedItem] = useState(0);
+  const reviewDesc = useRef();
 
   function addItemToCart(data) {
     if (info.length !== 0 && info[0].storeID !== data.storeID) {
@@ -54,7 +55,6 @@ export default function Item(props) {
   };
 
   const [selectedItemID, setSelectedItemID] = useState("");
-  const reviewDesc = useRef();
 
   const { addReviewProduct } = useBackendAPI();
 
@@ -65,12 +65,14 @@ export default function Item(props) {
   const submitProductReview = async (e) => {
     e.preventDefault();
 
-    // Ensure reviewDesc.current is not null
-    if (reviewDesc.current && reviewDesc.current.value) {
+    console.log(reviewDesc.current.value);
+
+    // Ensure reviewDesc.current is properly assigned and the user has entered a value
+    if (reviewDesc.current && reviewDesc.current.value.trim()) {
       const data = await addReviewProduct({
         itemID: selectedItemID,
         rating: addedRating,
-        review: reviewDesc.current.value,
+        review: reviewDesc.current.value, // Safely accessing the value
       });
 
       if (data) {
