@@ -32,7 +32,7 @@ export const UseUserContext = () => {
 
           // Make the API request to get orders
           const { data } = await axios.get(
-            `https://localhost:8082/api/order/getAllStoreOrders/${user._id}`,
+            `/api3/order/getAllStoreOrders/${user._id}`,
             {
               withCredentials: true,
             }

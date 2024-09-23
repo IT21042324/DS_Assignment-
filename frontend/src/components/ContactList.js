@@ -32,7 +32,6 @@ export default function ContactList({
       product_name: item.productName,
       product_image_url: item.image,
     });
-    console.log(result_test);
 
     if (result_test.toLowerCase() === "ok") {
       alert("Mail sent successfully");

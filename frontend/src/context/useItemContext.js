@@ -11,11 +11,12 @@ export const UseItemContext = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetching data from API with pagination
+        // Fetching data from API with pagination using the proxy path
         const { data } = await axios.get(
-          `https://localhost:8081/api/product/pagination?page=${page}&limit=10`,
+          `/api2/product/pagination?page=${page}&limit=10`, // Using proxy path instead of localhost URL
           {
             withCredentials: true, // Send cookies with requests (including the JWT token)
+            headers: { "x-csrf-token": getCsrfToken() }, // Adding CSRF token if required
           }
         );
 
@@ -26,8 +27,8 @@ export const UseItemContext = () => {
             payload: data.items, // Append new items to the existing ones
           });
 
-          if (data.items.length < 20) {
-            setHasMore(false); // No more items to load if less than 20 items are returned
+          if (data.items.length < 10) {
+            setHasMore(false); // No more items to load if less than 10 items are returned
           }
         } else {
           console.error("Items not found in the response", data);
@@ -37,7 +38,7 @@ export const UseItemContext = () => {
       }
     }
     fetchData();
-  }, [page]);
+  }, [page, dispatch]); // Adding dispatch to dependency array
 
   function hasUserReviewedItem(itemId, userId) {
     const item = items.find((item) => item.id === itemId);

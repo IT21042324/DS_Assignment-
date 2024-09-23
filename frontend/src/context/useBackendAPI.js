@@ -488,7 +488,6 @@ export function useBackendAPI() {
       try {
         const { data } = await userApi.get(`/access-token/${userName}/${role}`);
         const { googleAuthAccessToken } = data;
-        console.log("googleAuthAccessToken", googleAuthAccessToken);
         return googleAuthAccessToken;
       } catch (err) {
         consoleError(err);

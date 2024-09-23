@@ -18,16 +18,16 @@ const createApis = (baseURLs) => {
   return apis;
 };
 
-// Define base URLs for different APIs
+// Define proxy paths for different APIs instead of base URLs
 const baseURLs = [
-  { name: "user", baseURL: "https://localhost:8080/api/user" },
-  { name: "item", baseURL: "https://localhost:8081/api/product" },
-  { name: "store", baseURL: "https://localhost:8082/api/store" },
-  { name: "order", baseURL: "https://localhost:8082/api/order" },
-  { name: "payment", baseURL: "https://localhost:8083/api/payment" },
+  { name: "user", baseURL: "/api1/user" }, // Proxy for backend running on localhost:8080
+  { name: "item", baseURL: "/api2/product" }, // Proxy for backend running on localhost:8081
+  { name: "store", baseURL: "/api3/store" }, // Proxy for backend running on localhost:8082
+  { name: "order", baseURL: "/api3/order" }, // Proxy for backend running on localhost:8082
+  { name: "payment", baseURL: "/api4/payment" }, // Proxy for backend running on localhost:8083
 ];
 
-// Create all APIs in one step
+// Create all APIs in one step using proxy paths
 export const {
   userApi,
   userApiNSCR,

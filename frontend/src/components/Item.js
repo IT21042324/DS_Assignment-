@@ -65,9 +65,7 @@ export default function Item(props) {
   const submitProductReview = async (e) => {
     e.preventDefault();
 
-    console.log(reviewDesc.current.value);
-
-    // Ensure reviewDesc.current is properly assigned and the user has entered a value
+    // Ensure reviewDesc.current is properly assigned
     if (reviewDesc.current && reviewDesc.current.value.trim()) {
       const data = await addReviewProduct({
         itemID: selectedItemID,
@@ -76,7 +74,6 @@ export default function Item(props) {
       });
 
       if (data) {
-        handleClosePopup();
         alert("Review added successfully!");
 
         itemDispatch({
@@ -89,12 +86,13 @@ export default function Item(props) {
             userName: user.userName,
           },
         });
+
+        handleClosePopup();
       }
     } else {
       alert("Please provide a review description.");
     }
   };
-
   const [userCanReview, setUserCanReview] = useState(false);
 
   //To check if the user hasnt already submitted a review

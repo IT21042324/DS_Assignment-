@@ -20,8 +20,6 @@ export const useSellerOrderContext = () => {
         const itemCount = await getStoreItemCount(user.storeID);
         const response = await getTotalSalesAmount(user.storeID);
 
-        console.log(data, itemCount, response);
-
         if (response) {
           const { total = 0, orderCount = 0 } = response; // Destructure safely with default values
           dispatch({

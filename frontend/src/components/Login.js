@@ -6,11 +6,11 @@ import { UseUserContext } from "../context/useUserContext";
 import Footer from "./Footer";
 import { GoogleOAuth } from "./GoogleLogin";
 import Header from "./Header";
-import { sanitizeAndEncodeInputs } from "../utils/registerFormValidation";  
+import { sanitizeAndEncodeInputs } from "../utils/registerFormValidation";
 import "./Login.css";
 
 export default function Login() {
-//Creating refs to hold values of login form values
+  //Creating refs to hold values of login form values
   const { selectedUserRole } = UseUserContext();
   const userName = useRef();
   const password = useRef();
@@ -22,22 +22,22 @@ export default function Login() {
   const { login } = useBackendAPI();
 
   const validateForm = () => {
-     if (userName.current.value.trim() === "") {
-       return "Username is required";
+    if (userName.current.value.trim() === "") {
+      return "Username is required";
     }
     if (password.current.value.trim() === "") {
-       return "Password is required";
+      return "Password is required";
     }
-   };
+  };
 
   useEffect(() => {
     setExistUserRole(selectedUserRole);
-   }, [selectedUserRole]);
+  }, [selectedUserRole]);
 
   const loginHandler = async (e) => {
     e.preventDefault();
 
-     const errorMessage = validateForm();
+    const errorMessage = validateForm();
     if (errorMessage) {
       alert(errorMessage);
       return;
@@ -49,28 +49,28 @@ export default function Login() {
       password: password.current.value.trim(),
     };
 
-   // console.log("Original inputs before sanitization:", originalInputs);
+    // console.log("Original inputs before sanitization:", originalInputs);
 
     const sanitizedEncodedInputs = sanitizeAndEncodeInputs(originalInputs);
-   // console.log("Sanitized and encoded inputs:", sanitizedEncodedInputs);
+    // console.log("Sanitized and encoded inputs:", sanitizedEncodedInputs);
 
     var role;
     if (isAdmin) {
       role = "Admin";
-     } else {
+    } else {
       role = existUserRole || selectedUserRole;
-     }
+    }
 
     const info = await login({
       userName: sanitizedEncodedInputs.userName,
       password: sanitizedEncodedInputs.password,
       role,
     });
-     console.log(info);
+    console.log(info);
   };
 
   const googleAuthLoginHandler = async (userDetails) => {
-     const role = existUserRole || selectedUserRole;
+    const role = existUserRole || selectedUserRole;
 
     const info = await login({
       ...userDetails, // Contains userName, image, and googleAuthAccessToken
@@ -81,7 +81,7 @@ export default function Login() {
   };
 
   function setAdminFunction() {
-     if (!existUserRole) setExistUserRole(selectedUserRole);
+    if (!existUserRole) setExistUserRole(selectedUserRole);
 
     dispatch({
       type: "SetUserRole",

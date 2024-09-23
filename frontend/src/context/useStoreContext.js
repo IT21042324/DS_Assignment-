@@ -10,10 +10,11 @@ export const UseStoreContext = () => {
 
   useEffect(() => {
     async function fetchData() {
-      if (user1[0]?.role === "Merchant")
+      if (user1[0]?.role === "Merchant") {
         try {
+          // Fetch data from API using proxy path instead of localhost URL
           const { data } = await axios.get(
-            "https://localhost:8082/api/store/get/" + user1[0].storeID,
+            `/api3/store/get/${user1[0].storeID}`, // Using proxy path instead of localhost:8082
             {
               withCredentials: true, // Send cookies with requests (including the JWT token)
             }
@@ -27,9 +28,10 @@ export const UseStoreContext = () => {
         } catch (err) {
           console.log(err);
         }
+      }
     }
     fetchData();
-  }, []);
+  }, [user1, dispatch]);
 
   const clearOrderState = () => {
     dispatch({ type: "ClearAll" });
