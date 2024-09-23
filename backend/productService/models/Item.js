@@ -6,14 +6,14 @@ const itemsSchema = new Schema({
   itemName: {
     type: String,
     required: [true, "Item name is required"],
-    minlength: [3, "Item name must be at least 3 characters long"],
+    minlength: [2, "Item name must be at least 3 characters long"],
     maxlength: [100, "Item name cannot exceed 100 characters"],
     trim: true, // Trims whitespace from the input
   },
   description: {
     type: String,
     required: [true, "Description is required"],
-    minlength: [4, "Description must be at least 10 characters long"],
+    minlength: [2, "Description must be at least 10 characters long"],
     maxlength: [500, "Description cannot exceed 500 characters"],
     trim: true,
   },
@@ -40,9 +40,9 @@ const itemsSchema = new Schema({
     min: [0, "Total price must be a positive number"],
     validate: {
       validator: function (v) {
-        return v >= this.price; // Total price should not be less than the price
+        return v <= this.price; // Total price should not be less than the price
       },
-      message: "Total price cannot be less than the item price",
+      message: "Total price cannot be more than the item price",
     },
   },
   quantity: {
@@ -75,13 +75,19 @@ const itemsSchema = new Schema({
 
 // Pre-save hook to log before saving an item
 itemsSchema.pre("save", function (next) {
-  logger.info("Attempting to save item", { itemName: this.itemName, storeID: this.storeID });
+  logger.info("Attempting to save item", {
+    itemName: this.itemName,
+    storeID: this.storeID,
+  });
   next();
 });
 
 // Post-save hook to log after saving an item
 itemsSchema.post("save", function (doc) {
-  logger.info("Item saved successfully", { itemID: doc._id, storeID: doc.storeID });
+  logger.info("Item saved successfully", {
+    itemID: doc._id,
+    storeID: doc.storeID,
+  });
 });
 
 // Post-save hook to log errors during save
@@ -108,7 +114,9 @@ itemsSchema.post("findOneAndUpdate", function (doc) {
 // Post-update hook to log errors during update
 itemsSchema.post("findOneAndUpdate", function (error, doc, next) {
   if (error) {
-    logger.error("Error occurred while updating item", { error: error.message });
+    logger.error("Error occurred while updating item", {
+      error: error.message,
+    });
   }
   next();
 });
@@ -129,7 +137,9 @@ itemsSchema.post("findByIdAndDelete", function (doc) {
 // Post-delete hook to log errors during deletion
 itemsSchema.post("findByIdAndDelete", function (error, doc, next) {
   if (error) {
-    logger.error("Error occurred while deleting item", { error: error.message });
+    logger.error("Error occurred while deleting item", {
+      error: error.message,
+    });
   }
   next();
 });

@@ -1,25 +1,29 @@
+import { faBox, faDashboard } from "@fortawesome/free-solid-svg-icons";
+import DOMPurify from "dompurify"; // Import DOMPurify for sanitizing input
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SideMenu from "../../components/SideMenu";
-import { useRef, useState } from "react";
 import { useBackendAPI } from "../../context/useBackendAPI";
 import { UseUserContext } from "../../context/useUserContext";
-import { UseStoreContext } from "../../context/useStoreContext";
-import { faBox, faDashboard, faUser } from "@fortawesome/free-solid-svg-icons";
-import DOMPurify from "dompurify"; // Import DOMPurify for sanitizing input
 
 export default function AddProduct() {
   const { user1 } = UseUserContext();
   const { saveProduct, getStoreName } = useBackendAPI();
 
-  // Setting initial state for the product picture as an empty string
   const [image, setProductPicture] = useState("");
+  const [error, setError] = useState(""); // State to handle errors
 
-  // Function for converting the selected image file to base64 format
   function convertToBase64(e) {
-    const reader = new FileReader();
-    reader.readAsDataURL(e.target.files[0]);
-    reader.onload = () => setProductPicture(reader.result);
-    reader.onerror = (error) => console.log("error: ", error);
+    const file = e.target.files[0];
+    if (file && file.size < 500000) {
+      // Limit file size to 500KB (adjust as needed)
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => setProductPicture(reader.result);
+      reader.onerror = (error) => console.log("error: ", error);
+    } else {
+      setError("File is too large. Please upload a smaller image.");
+    }
   }
 
   const itemName = useRef(),
@@ -29,35 +33,31 @@ export default function AddProduct() {
     discount = useRef(),
     imageInputRef = useRef(null);
 
-  // Function to encode input
-  const encodeInput = (input) => {
-    const div = document.createElement("div");
-    div.appendChild(document.createTextNode(input));
-    return div.innerHTML;
-  };
-
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
     // Get the store name based on the storeID
     const storeName = await getStoreName(user1[0].storeID);
 
-    // Sanitize and encode inputs to protect against XSS attacks
-    const sanitizedItemName = encodeInput(
-      DOMPurify.sanitize(itemName.current.value.trim())
+    // Sanitize inputs
+    const sanitizedItemName = DOMPurify.sanitize(itemName.current.value.trim());
+    const sanitizedDescription = DOMPurify.sanitize(
+      description.current.value.trim()
     );
-    const sanitizedDescription = encodeInput(
-      DOMPurify.sanitize(description.current.value.trim())
-    );
-    const sanitizedPrice = encodeInput(
-      DOMPurify.sanitize(price.current.value.trim())
-    );
-    const sanitizedQuantity = encodeInput(
-      DOMPurify.sanitize(quantity.current.value.trim())
-    );
-    const sanitizedDiscount = encodeInput(
-      DOMPurify.sanitize(discount.current.value.trim())
-    );
+    const sanitizedPrice = parseFloat(price.current.value); // Ensure price is a number
+    const sanitizedQuantity = parseInt(quantity.current.value, 10); // Ensure quantity is a number
+    const sanitizedDiscount = parseFloat(discount.current.value); // Ensure discount is a number
+
+    // Validate inputs before submitting
+    if (!sanitizedPrice || sanitizedPrice <= 0) {
+      setError("Price must be a positive number.");
+      return;
+    }
+
+    if (sanitizedDiscount < 0 || sanitizedDiscount > 100) {
+      setError("Discount must be between 0 and 100.");
+      return;
+    }
 
     const data = await saveProduct({
       itemName: sanitizedItemName,
@@ -81,7 +81,6 @@ export default function AddProduct() {
 
   return (
     <div>
-      {/* Render the SideMenu component */}
       <section className="sideMenu">
         <div className="logo">
           <Link
@@ -118,9 +117,10 @@ export default function AddProduct() {
             </Link>
           </div>
         </div>
-
+        {error && <p style={{ color: "red" }}>{error}</p>}{" "}
+        {/* Display error if any */}
         <div className="card mb-4">
-          <form onSubmit={(e) => onSubmitHandler(e)}>
+          <form onSubmit={onSubmitHandler}>
             <header className="card-header">
               <h4>Product</h4>
               <div>
@@ -170,6 +170,7 @@ export default function AddProduct() {
                     placeholder="0"
                     ref={quantity}
                     required
+                    min="1"
                   />
                   <div className="valid-feedback">Looks good!</div>
                 </div>
@@ -191,24 +192,29 @@ export default function AddProduct() {
                 <div className="col-md-4 mb-3">
                   <label htmlFor="validationCustom01">Unit Price</label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     id="validationCustom01"
                     placeholder="0.00"
                     ref={price}
                     required
+                    min="0.01"
+                    step="0.01"
                   />
                   <div className="valid-feedback">Looks good!</div>
                 </div>
                 <div className="col-md-4 mb-3">
                   <label htmlFor="validationCustom01">Discount</label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     id="validationCustom01"
                     placeholder="0.00"
                     ref={discount}
                     required
+                    min="0"
+                    max="100"
+                    step="0.01"
                   />
                   <div className="valid-feedback">Looks good!</div>
                 </div>

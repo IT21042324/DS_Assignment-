@@ -24,6 +24,7 @@ function Header() {
 
   // Logout function
   const logoutFunction = () => logoutUser();
+  console.log(profilePic);
 
   useEffect(() => {
     if (user?.image) {
@@ -76,12 +77,15 @@ function Header() {
               {profilePic && (
                 <img
                   src={profilePic} // Handles both Google URL and Base64
-                  alt={user.userName}
+                  alt={"Pic"}
                   style={{
                     width: "25px",
                     height: "25px",
                     borderRadius: "40px",
                     marginTop: "10px",
+                    fontSize: "12px",
+                    border: "1px solid green",
+                    textAlign: "center",
                   }}
                   onClick={() => {
                     // Only allow opening the popup if it's not a Google image

@@ -293,10 +293,11 @@ export function useBackendAPI() {
       try {
         const { data } = await itemApi.post("/addItem/", product);
 
-        await storeApi.patch("/updateItem/", {
-          storeID: user1[0].storeID,
-          item: data,
-        });
+        if (data._id)
+          await storeApi.patch("/updateItem/", {
+            storeID: user1[0].storeID,
+            item: data,
+          });
 
         storeDispatch({ type: "AddItem", payload: data });
         alert("Item Added Successfully");

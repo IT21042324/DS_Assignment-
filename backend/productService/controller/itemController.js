@@ -20,7 +20,6 @@ const postItem = async (req, res) => {
     image,
     storeName,
     description,
-    category,
     price,
     quantity,
     discount,
@@ -34,7 +33,6 @@ const postItem = async (req, res) => {
       itemName,
       description,
       image,
-      category,
       price,
       quantity,
       discount,
@@ -47,7 +45,8 @@ const postItem = async (req, res) => {
     logger.info("Item added successfully", { itemName, storeID });
     res.json(data);
   } catch (err) {
-    logger.error("Error adding item", { error: err.message });
+    console.log(err);
+    // logger.error("Error adding item", { error: err.message });
     res.status(500).json(err.message);
   }
 };
@@ -74,7 +73,10 @@ const updateItem = async (req, res) => {
     let updatedInfo;
 
     if (itemInfo.redQuantity) {
-      const { quantity } = await itemModel.findById(itemInfo.itemID, "quantity");
+      const { quantity } = await itemModel.findById(
+        itemInfo.itemID,
+        "quantity"
+      );
 
       if (quantity < itemInfo.redQuantity) {
         throw new Error("Not enough stock available");
@@ -85,17 +87,28 @@ const updateItem = async (req, res) => {
         { $inc: { quantity: -itemInfo.redQuantity } },
         { new: true }
       );
-      logger.info("Reduced item quantity", { itemID: itemInfo.itemID, reducedBy: itemInfo.redQuantity });
+      logger.info("Reduced item quantity", {
+        itemID: itemInfo.itemID,
+        reducedBy: itemInfo.redQuantity,
+      });
     } else {
-      itemInfo.totalPrice = itemInfo.price - (itemInfo.price * itemInfo.discount) / 100;
+      itemInfo.totalPrice =
+        itemInfo.price - (itemInfo.price * itemInfo.discount) / 100;
 
-      updatedInfo = await itemModel.findByIdAndUpdate(itemInfo.itemID, itemInfo, { new: true });
+      updatedInfo = await itemModel.findByIdAndUpdate(
+        itemInfo.itemID,
+        itemInfo,
+        { new: true }
+      );
       logger.info("Updated item", { itemID: itemInfo.itemID });
     }
 
     res.json(updatedInfo);
   } catch (err) {
-    logger.error("Error updating item", { error: err.message, itemID: itemInfo.itemID });
+    logger.error("Error updating item", {
+      error: err.message,
+      itemID: itemInfo.itemID,
+    });
     res.status(500).json(err.message);
   }
 };
@@ -128,7 +141,10 @@ const addReview = async (req, res) => {
 
     async function callBack(descArr) {
       descArr.push({ userID, userName, rating, review });
-      const data = await itemModel.findOneAndUpdate({ _id: itemID }, { reviews: descArr });
+      const data = await itemModel.findOneAndUpdate(
+        { _id: itemID },
+        { reviews: descArr }
+      );
       logger.info("Added review", { itemID, userID, userName });
       res.json(data);
     }
@@ -150,14 +166,21 @@ const modifyReview = async (req, res) => {
 
     removeReview();
   } catch (err) {
-    logger.error("Error modifying review", { error: err.message, itemID, userID });
+    logger.error("Error modifying review", {
+      error: err.message,
+      itemID,
+      userID,
+    });
     res.status(500).json(err.message);
   }
 
   async function callBack(descArr) {
     descArr = descArr.filter((obj) => obj.userID != userID);
     descArr.push({ userID, userName, rating, review });
-    const data = await itemModel.findOneAndUpdate({ _id: itemID }, { reviews: descArr });
+    const data = await itemModel.findOneAndUpdate(
+      { _id: itemID },
+      { reviews: descArr }
+    );
     logger.info("Modified review", { itemID, userID, userName });
     res.json({ updatedInfo: data });
   }
@@ -175,13 +198,20 @@ const deleteReview = (req, res) => {
 
     removeReview();
   } catch (err) {
-    logger.error("Error deleting review", { error: err.message, itemID, userID });
+    logger.error("Error deleting review", {
+      error: err.message,
+      itemID,
+      userID,
+    });
     res.status(500).json(err.message);
   }
 
   async function callBack(descArr) {
     descArr = descArr.filter((obj) => obj.userID != userID);
-    const data = await itemModel.findOneAndUpdate({ _id: itemID }, { reviews: descArr });
+    const data = await itemModel.findOneAndUpdate(
+      { _id: itemID },
+      { reviews: descArr }
+    );
     logger.info("Deleted review", { itemID, userID });
     res.json({ updatedInfo: data });
   }
@@ -194,7 +224,10 @@ const deleteAllItemsFromStore = async (req, res) => {
     logger.info("Deleted all items from store", { storeID: req.params.id });
     res.json(data);
   } catch (err) {
-    logger.error("Error deleting all items from store", { error: err.message, storeID: req.params.id });
+    logger.error("Error deleting all items from store", {
+      error: err.message,
+      storeID: req.params.id,
+    });
     res.status(500).send(err.message);
   }
 };
@@ -217,7 +250,11 @@ const getAllItemsWithPagination = async (req, res) => {
       totalItems,
     });
   } catch (err) {
-    logger.error("Error fetching items with pagination", { error: err.message, page, limit });
+    logger.error("Error fetching items with pagination", {
+      error: err.message,
+      page,
+      limit,
+    });
     res.status(500).send(err.message);
   }
 };

@@ -1,6 +1,7 @@
 // Importing Store model
 let Store = require("../models/Store");
 let logger = require("../logger");
+let mongoose = require("mongoose");
 
 // Creating a new store in the database
 const createStore = async (req, res) => {
@@ -93,7 +94,7 @@ const getOneStore = async (req, res) => {
   try {
     // Finding the store by the given ID, excluding the image field
     const data = await Store.findById(id).select("-storeItem.image");
-    logger.info(`Store retrieved by ID: ${data}`);
+    logger.info(`Store retrieved by Name: ${data?.storeName}`);
     res.json(data);
   } catch (err) {
     logger.error(`Error retrieving store by ID: ${err.message}`);
