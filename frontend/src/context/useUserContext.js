@@ -1,11 +1,22 @@
 import axios from "axios";
-import { useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "./userContext";
-import { replace, useNavigate } from "react-router-dom";
 
 export const UseUserContext = () => {
   const { dispatch, user1, selectedUserRole, orders } = useContext(UserContext);
   const navigate = useNavigate();
+
+  // Wrap the logoutUser function with useCallback
+  const logoutUser = useCallback(() => {
+    const userSaved = localStorage.getItem("user");
+    if (userSaved) {
+      localStorage.removeItem("user");
+      dispatch({ type: "Logout" });
+      navigate("/", { replace: true });
+      return true;
+    } else return false;
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     async function getDataForUserContext() {
@@ -95,16 +106,6 @@ export const UseUserContext = () => {
         payload: storeID,
       });
     }
-  }
-
-  function logoutUser() {
-    const userSaved = localStorage.getItem("user");
-    if (userSaved) {
-      localStorage.removeItem("user");
-      dispatch({ type: "Logout" });
-      navigate("/", { replace: true });
-      return true;
-    } else return false;
   }
 
   return {
