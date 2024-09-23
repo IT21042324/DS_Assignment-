@@ -39,7 +39,7 @@ const userLogin = async (req, res) => {
     // Set the JWT as a HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "Strict",
       maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
     });
@@ -47,7 +47,7 @@ const userLogin = async (req, res) => {
     // Set the CSRF token as a non-HttpOnly cookie
     res.cookie("csrfToken", csrfToken, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "Strict",
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
@@ -84,7 +84,7 @@ const userSignUp = async (req, res) => {
     // Set the JWT as a HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "Strict",
       maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
     });
@@ -92,7 +92,7 @@ const userSignUp = async (req, res) => {
     // Set the CSRF token as a non-HttpOnly cookie
     res.cookie("csrfToken", csrfToken, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "Strict",
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
