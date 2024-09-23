@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const requireAuth = require("../middleware/requireAuth");
 const csrfProtection = require("../middleware/csrfProtection");
+const disableCache = require("../middleware/cacheControl");
 
 const {
   createPayment,
@@ -13,6 +14,9 @@ const {
 
 // Apply authentication to all routes
 router.use(requireAuth);
+
+// Disable cache for all routes
+router.use(disableCache);
 
 // Create a new payment (state-changing, requires CSRF protection)
 router.post("/add", csrfProtection, createPayment);
