@@ -1,5 +1,5 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AdminRoutes } from "./AdminRoutes";
 import "./App.css";
@@ -9,6 +9,7 @@ import { UseUserContext } from "./context/useUserContext";
 import { PageNotFound } from "./pages/Error/PageNotFound";
 import { UnauthorizedEntry } from "./pages/Error/UnauthorizedEntry";
 import { SellerRoutes } from "./SellerRoutes";
+import { setupAxiosInterceptors } from "./utils/axiosInterceptor";
 
 // Memoized Components
 const MemoizedBuyerRoutes = memo(BuyerRoutes);

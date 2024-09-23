@@ -10,9 +10,9 @@ const httpsAgent = new https.Agent({
 
 const requireAuth = async (req, res, next) => {
   const token = req.cookies.token;
-  if (!token) {
+
+  if (!token)
     return res.status(401).json({ error: "Authorization token not found" });
-  }
 
   try {
     const { id, role } = jwt.verify(token, process.env.SECRET);
@@ -28,7 +28,7 @@ const requireAuth = async (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
-    res.status(401).json({ error: "Unauthorized Request" });
+    res.status(401).json({ error: "Token expired or invalid" });
   }
 };
 

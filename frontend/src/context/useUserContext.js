@@ -1,44 +1,60 @@
 import axios from "axios";
 import { useContext, useEffect } from "react";
 import { UserContext } from "./userContext";
+import { replace, useNavigate } from "react-router-dom";
 
 export const UseUserContext = () => {
   const { dispatch, user1, selectedUserRole, orders } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function getDataForUserContext() {
-      if (localStorage.getItem("user")) {
-        const user = JSON.parse(localStorage.getItem("user"));
+      try {
+        // Check if there's user data in localStorage
+        if (localStorage.getItem("user")) {
+          const user = JSON.parse(localStorage.getItem("user"));
 
-        dispatch({
-          type: "SetUser",
-          payload: [user],
-        });
+          dispatch({
+            type: "SetUser",
+            payload: [user],
+          });
 
-        const { data } = await axios.get(
-          `https://localhost:8082/api/order/getAllStoreOrders/${user._id}`,
-          {
-            withCredentials: true,
+          // Make the API request to get orders
+          const { data } = await axios.get(
+            `https://localhost:8082/api/order/getAllStoreOrders/${user._id}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+          // Handle order data
+          data?.forEach((ord) => {
+            if (ord.status === "Pending") ord.statusValue = 0;
+            else if (ord.status === "Confirmed") ord.statusValue = 1;
+            else if (ord.status === "Dispatched") ord.statusValue = 2;
+            else if (ord.status === "Delivered") ord.statusValue = 3;
+          });
+
+          if (data) {
+            dispatch({
+              type: "SetOrders",
+              payload: data,
+            });
           }
-        );
-
-        //We try to determine the status of order so that we can display the tracking interface accordingly
-        data.forEach((ord) => {
-          if (ord.status === "Pending") ord.statusValue = 0;
-          else if (ord.status === "Confirmed") ord.statusValue = 1;
-          else if (ord.status === "Dispatched") ord.statusValue = 2;
-          else if (ord.status === "Delivered") ord.statusValue = 3;
-        });
-
-        dispatch({
-          type: "SetOrders",
-          payload: data,
-        });
+        }
+      } catch (error) {
+        // Check if it's a 401 error and trigger logout if so
+        if (error.response && error.response.status === 401) {
+          console.error("401 Unauthorized - Logging out");
+          logoutUser();
+        } else {
+          console.error("Error fetching data", error);
+        }
       }
     }
 
     getDataForUserContext();
-  }, [dispatch]);
+  }, [dispatch, logoutUser]);
 
   function getUser() {
     if (localStorage.getItem("user")) {
@@ -86,7 +102,7 @@ export const UseUserContext = () => {
     if (userSaved) {
       localStorage.removeItem("user");
       dispatch({ type: "Logout" });
-      // handleLogout();
+      navigate("/", { replace: true });
       return true;
     } else return false;
   }
