@@ -15,12 +15,11 @@ function Dashboard() {
   const { logoutUser } = UseUserContext();
   const { deleteUser } = useBackendAPI();
   const { content } = useAdminContext();
-  const adminUserList = useAdminUserContext().content;
-  const adminUserDispatch = useAdminUserContext().dispatch;
+  const { content: adminUserList, dispatch: adminUserDispatch } =
+    useAdminUserContext();
 
-  //Destructuring necessary commponents from the admin context
-  const { dashBoardDetails } = content;
-  const dashDetails = dashBoardDetails;
+  //Destructuring necessary components from the admin context
+  const { dashBoardDetails: dashDetails } = content;
 
   const [users, setUsers] = useState([]);
   const [orderCount, setOrderCount] = useState(0);
@@ -30,14 +29,18 @@ function Dashboard() {
 
   //setting the dashboard details
   useEffect(() => {
-    setOrderCount(dashDetails.orderCount);
-    setAmount(dashDetails.amountForStore);
-  }, []);
+    if (dashDetails) {
+      setOrderCount(dashDetails.orderCount);
+      setAmount(dashDetails.amountForStore);
+    }
+  }, [dashDetails]);
 
   //setting the users details
   useEffect(() => {
-    setUsers(adminUserList.users);
-    setUserCount(users.length);
+    if (adminUserList.users) {
+      setUsers(adminUserList.users);
+      setUserCount(adminUserList.users.length);
+    }
   }, [adminUserList.users]);
 
   // Define a state variable to track admin's login status
@@ -45,7 +48,6 @@ function Dashboard() {
 
   //The function to logout
   const logoutFunction = () => {
-    //To logout the user
     alert("Logged Out");
     setAdminIsLoggedIn(false);
   };
@@ -53,19 +55,18 @@ function Dashboard() {
   // Use useEffect to logout user if adminIsLoggedIn state changes
   useEffect(() => {
     if (!adminIsLoggedIn) {
-      // Call the logoutUser function from the context
       logoutUser();
     }
-  }, [adminIsLoggedIn]);
+  }, [adminIsLoggedIn, logoutUser]);
 
-  const removeUser = async (e, userID, userName) => {
+  const removeUser = async (e, userID) => {
     e.preventDefault();
-
     const data = await deleteUser(userID);
-
     if (data) {
       adminUserDispatch({ type: "DeleteUser", payload: { _id: data._id } });
-    } else alert("Ooops.. There seems to be an error deleting the user");
+    } else {
+      alert("Ooops.. There seems to be an error deleting the user");
+    }
   };
 
   return (
@@ -77,27 +78,16 @@ function Dashboard() {
             style={{ display: "flex", justifyContent: "space-between" }}
           >
             <div>
-              <h2
-                style={{
-                  color: "Black",
-                  fontWeight: "bold",
-                }}
-              >
+              <h2 style={{ color: "Black", fontWeight: "bold" }}>
                 ADMIN DASHBOARD
               </h2>
-              <p
-                style={{
-                  color: "black",
-                }}
-              >
-                Whole data about site here
-              </p>
+              <p style={{ color: "black" }}>Whole data about site here</p>
             </div>
             <div>
               <input
                 type="Button"
                 className="btn btn-primary"
-                onClick={(e) => logoutFunction()}
+                onClick={logoutFunction}
                 value="Logout"
               />
             </div>
@@ -125,12 +115,13 @@ function Dashboard() {
                     <FontAwesomeIcon icon={faTruck} />
                   </span>
                   <div className="text">
-                    <h6 className="mb-1 card-title">Orders</h6>{" "}
+                    <h6 className="mb-1 card-title">Orders</h6>
                     <span>{orderCount}</span>
                   </div>
                 </article>
               </div>
             </div>
+
             <div className="col-lg-3">
               <div className="card card-body mb-3">
                 <article className="icontext">
@@ -138,7 +129,7 @@ function Dashboard() {
                     <FontAwesomeIcon icon={faUserGroup} />
                   </span>
                   <div className="text">
-                    <h6 className="mb-2 card-title">Users</h6>{" "}
+                    <h6 className="mb-2 card-title">Users</h6>
                     <span>{userCount}</span>
                   </div>
                 </article>
@@ -199,55 +190,47 @@ function Dashboard() {
                           (userRole === "" || usr.role === userRole) &&
                           usr.role !== "Admin"
                       )
-                      .map((usr) => {
-                        return (
-                          <tr
-                            key={usr._id}
-                            style={{ textAlign: "center", height: "50px" }}
-                          >
-                            <td style={{ textAlign: "center" }}>
-                              {usr._id.slice(-4)}
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                              {usr.userName}
-                            </td>
-                            <td style={{ textAlign: "center" }}>{usr.role}</td>
-                            <td style={{ textAlign: "center" }}>
-                              {usr.contact}
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                              {usr.address}
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                              <button
-                                onClick={(e) =>
-                                  removeUser(e, usr._id, usr.userName)
-                                }
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "4px",
-                                  border: "none",
-                                  fontSize: "16px",
-                                  fontFamily: "sans-serif",
-                                  cursor: "pointer",
-                                  backgroundColor: "#fff",
-                                  color: "#ff4d4f",
-                                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                                  float: "right",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f1f1f1")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor = "#fff")
-                                }
-                              >
-                                Remove User
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      .map((usr) => (
+                        <tr
+                          key={usr._id}
+                          style={{ textAlign: "center", height: "50px" }}
+                        >
+                          <td style={{ textAlign: "center" }}>
+                            {usr._id.slice(-4)}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {usr.userName}
+                          </td>
+                          <td style={{ textAlign: "center" }}>{usr.role}</td>
+                          <td style={{ textAlign: "center" }}>{usr.contact}</td>
+                          <td style={{ textAlign: "center" }}>{usr.address}</td>
+                          <td style={{ textAlign: "center" }}>
+                            <button
+                              onClick={(e) => removeUser(e, usr._id)}
+                              style={{
+                                padding: "8px 12px",
+                                borderRadius: "4px",
+                                border: "none",
+                                fontSize: "16px",
+                                fontFamily: "sans-serif",
+                                cursor: "pointer",
+                                backgroundColor: "#fff",
+                                color: "#ff4d4f",
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                float: "right",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#f1f1f1")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#fff")
+                              }
+                            >
+                              Remove User
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>

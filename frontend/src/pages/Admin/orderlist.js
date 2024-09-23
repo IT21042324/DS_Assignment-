@@ -98,54 +98,56 @@ export default function Orderlist() {
                     </th>
                   </tr>
                 </thead>
-                {orders.map((data) => {
-                  return (
-                    <tr key={data._id} style={{ height: "50px" }}>
-                      <td scope="col">{data._id.slice(-4)}</td>
-                      <td>{data.paymentID.slice(-4)}</td>
-                      <td>{data.storeID.slice(-4)}</td>
-                      <td>{data.address}</td>
-                      <td>
-                        {data.itemList.map((itm) => itm.itemName).join(", ")}
-                      </td>
-                      <td>{data.status}</td>
-                      <td scope="col">
-                        {data.status === "Pending" ? (
-                          <button
-                            style={{
-                              padding: "8px 12px",
-                              borderRadius: "4px",
-                              border: "none",
-                              fontSize: "16px",
-                              fontFamily: "sans-serif",
-                              cursor: "pointer",
-                              backgroundColor: "#fff",
-                              color: "green",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                              transition: "all 0.2s ease-in-out",
-                            }}
-                            name="Confirm Order"
-                            onClick={(e) =>
-                              changeOrderStatus(e, data._id, "Confirmed")
-                            }
-                            onMouseEnter={(e) =>
-                              (e.target.style.backgroundColor = "#f1f1f1")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.target.style.backgroundColor = "#fff")
-                            }
-                          >
-                            Confirm Order
-                          </button>
-                        ) : (
-                          <span style={{ color: "blue" }}>
-                            "Order Approved"
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                <tbody>
+                  {orders.map((data) => {
+                    return (
+                      <tr key={data._id} style={{ height: "50px" }}>
+                        <td scope="col">{data._id.slice(-4)}</td>
+                        <td>{data.paymentID.slice(-4)}</td>
+                        <td>{data.storeID.slice(-4)}</td>
+                        <td>{data.address}</td>
+                        <td>
+                          {data.itemList.map((itm) => itm.itemName).join(", ")}
+                        </td>
+                        <td>{data.status}</td>
+                        <td scope="col">
+                          {data.status === "Pending" ? (
+                            <button
+                              style={{
+                                padding: "8px 12px",
+                                borderRadius: "4px",
+                                border: "none",
+                                fontSize: "16px",
+                                fontFamily: "sans-serif",
+                                cursor: "pointer",
+                                backgroundColor: "#fff",
+                                color: "green",
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.2s ease-in-out",
+                              }}
+                              name="Confirm Order"
+                              onClick={(e) =>
+                                changeOrderStatus(e, data._id, "Confirmed")
+                              }
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#f1f1f1")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#fff")
+                              }
+                            >
+                              Confirm Order
+                            </button>
+                          ) : (
+                            <span style={{ color: "blue" }}>
+                              "Order Approved"
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </div>

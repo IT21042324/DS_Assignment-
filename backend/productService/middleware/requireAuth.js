@@ -4,7 +4,7 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // Bypass the SSL certificate verification
+  rejectUnauthorized: true, // Bypass the SSL certificate verification
   ca: fs.readFileSync("../certificate/rootCA.pem"),
 });
 

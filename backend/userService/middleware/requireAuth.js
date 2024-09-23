@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 // Custom HTTPS agent for SSL certificate
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // Bypass SSL certificate verification
+  rejectUnauthorized: true, // Bypass SSL certificate verification
   ca: fs.readFileSync("../certificate/rootCA.pem"),
 });
 
