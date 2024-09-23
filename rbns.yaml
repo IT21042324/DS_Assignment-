@@ -21,6 +21,13 @@ spec:
               value: development
           ports:
             - containerPort: 8083
+          resources:
+            limits:
+              memory: "512Mi"
+              ephemeral-storage: "1Gi"  # Storage limit
+            requests:
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"  # Requested storage
         - name: user-service
           image: imreezan/user-service
           imagePullPolicy: IfNotPresent
@@ -29,6 +36,13 @@ spec:
               value: development
           ports:
             - containerPort: 8080
+          resources:
+            limits:
+              memory: "512Mi"
+              ephemeral-storage: "1Gi"  # Storage limit
+            requests:
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"  # Requested storage
         - name: product-service
           image: imreezan/product-service
           imagePullPolicy: IfNotPresent
@@ -37,6 +51,13 @@ spec:
               value: development
           ports:
             - containerPort: 8081
+          resources:
+            limits:
+              memory: "512Mi"
+              ephemeral-storage: "1Gi"  # Storage limit
+            requests:
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"  # Requested storage
         - name: store-service
           image: imreezan/store-service
           imagePullPolicy: IfNotPresent
@@ -45,6 +66,13 @@ spec:
               value: development
           ports:
             - containerPort: 8082
+          resources:
+            limits:
+              memory: "512Mi"
+              ephemeral-storage: "1Gi"  # Storage limit
+            requests:
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"  # Requested storage
         - name: rbns-client
           image: imreezan/rbns-client
           ports:
@@ -53,6 +81,14 @@ spec:
           env:
             - name: NODE_ENV
               value: development
+          resources:
+            limits:
+              memory: "512Mi"
+              ephemeral-storage: "1Gi"  # Storage limit
+            requests:
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"  # Requested storage
+          
 ---
 apiVersion: v1
 kind: Service
