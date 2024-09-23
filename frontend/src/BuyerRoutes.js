@@ -5,6 +5,7 @@ import { UseStoreContext } from "./context/useStoreContext";
 import Buyer from "./pages/Buyer/Buyer";
 import Cart from "./pages/Buyer/Cart";
 import Product from "./pages/Buyer/Product";
+import { PageNotFound } from "./pages/Error/PageNotFound";
 
 export function BuyerRoutes({ UseUserContext }) {
   return (
@@ -31,6 +32,7 @@ export function BuyerRoutes({ UseUserContext }) {
             />
           }
         />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>
   );

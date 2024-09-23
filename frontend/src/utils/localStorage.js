@@ -7,6 +7,7 @@ export const setUserInLocalStorage = (data) => {
       image: data.image,
       role: data.role,
       storeID: data.storeID,
+      loginType: data.loginType,
     })
   );
 };

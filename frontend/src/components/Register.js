@@ -1,16 +1,20 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import Footer from "./Footer";
-import Header from "./Header";
-import pic from "../assets/register.png";
-import { useState, useRef } from "react";
-import { useBackendAPI } from "../context/useBackendAPI";
 import avatar from "../assets/addphoto.png";
 import { EncodedFile } from "../assets/encodedImage";
+import pic from "../assets/register.png";
+import { useBackendAPI } from "../context/useBackendAPI";
 import { UseUserContext } from "../context/useUserContext";
-import DOMPurify from 'dompurify'; // Import DOMPurify for input sanitization
+import {
+  sanitizeAndEncodeInputs,
+  validateForm,
+} from "../utils/registerFormValidation";
+import Footer from "./Footer";
 import { GoogleOAuth } from "./GoogleLogin";
+import Header from "./Header";
 import { SendEmail } from "./SendEmail";
-import { GoogleContact } from "./GoogleAuthComponents";
+
+// Import validation and sanitization functions
 
 export default function Register() {
   const [profilePic, setProfilePic] = useState(avatar);
@@ -32,15 +36,10 @@ export default function Register() {
     reader.onerror = (error) => console.log("error: ", error);
   };
 
-  // Encodes input to prevent XSS
-  const encodeInput = (input) => {
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(input));
-    return div.innerHTML;
-  };
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  // Sanitize and encode inputs to prevent XSS
-  const sanitizeAndEncodeInputs = () => {
     const originalInputs = {
       userName: userName.current.value.trim(),
       password: password.current.value.trim(),
@@ -48,85 +47,28 @@ export default function Register() {
       address: address.current.value.trim(),
     };
 
-    // console.log("Original Inputs: ", originalInputs);
+    // Sanitize and encode inputs
+    const sanitizedEncodedInputs = sanitizeAndEncodeInputs(originalInputs);
 
-    const sanitizedInputs = {
-      userName: DOMPurify.sanitize(originalInputs.userName),
-      password: DOMPurify.sanitize(originalInputs.password),
-      contact: DOMPurify.sanitize(originalInputs.contact),
-      address: DOMPurify.sanitize(originalInputs.address),
-    };
-
-    // console.log("Sanitized Inputs: ", sanitizedInputs);
-
-    const encodedInputs = {
-      userName: encodeInput(sanitizedInputs.userName),
-      password: encodeInput(sanitizedInputs.password),
-      contact: encodeInput(sanitizedInputs.contact),
-      address: encodeInput(sanitizedInputs.address),
-    };
-
-    // console.log("Encoded Inputs: ", encodedInputs);
-
-    // Assign the sanitized and encoded values back to the input fields
-    userName.current.value = encodedInputs.userName;
-    password.current.value = encodedInputs.password;
-    contact.current.value = encodedInputs.contact;
-    address.current.value = encodedInputs.address;
-  };
-
-  // Handle form validation
-  const validateForm = () => {
-    const validationErrors = {};
-
-    if (!userName.current.value.match(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/)) {
-      validationErrors.userName = "Invalid email format. Please enter a valid email.";
-    }
-
-    if (!password.current.value.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,20}$/)) {
-      validationErrors.password = "Password must be 6-20 characters, include at least one uppercase letter, one number, and one special character.";
-    }
-
-    if (!contact.current.value.match(/^\d{10}$/)) {
-      validationErrors.contact = "Contact number must be exactly 10 digits.";
-    }
-
-    const addressValue = address.current.value.trim();
-    if (addressValue.length < 10) {
-      validationErrors.address = "Address must be at least 10 characters long.";
-    } else if (!/\d/.test(addressValue) || !/[a-zA-Z]/.test(addressValue)) {
-      validationErrors.address = "Address must contain both letters and numbers.";
-    } else if (/[^a-zA-Z0-9\s,-]/.test(addressValue)) {
-      validationErrors.address = "Address contains invalid special characters.";
-    }
+    // Perform form validation
+    const validationErrors = validateForm(sanitizedEncodedInputs);
 
     setErrors(validationErrors);
-    return Object.keys(validationErrors).length === 0;
-  };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    sanitizeAndEncodeInputs();
-    if (validateForm()) {
-      registerMerchant();
+    if (Object.keys(validationErrors).length === 0) {
+      registerMerchant(sanitizedEncodedInputs);
     }
   };
 
   // Register merchant function
-  const registerMerchant = async () => {
+  const registerMerchant = async (dataToSave) => {
     const image = profilePic || EncodedFile().image;
 
-    const dataToSave = {
-      userName: userName.current.value,
-      password: password.current.value,
-      contact: contact.current.value,
-      address: address.current.value,
-      image: profilePic,
+    await registerUser({
+      ...dataToSave,
+      image,
       role: selectedUserRole,
-    };
-
-    await registerUser(dataToSave);
+    });
   };
 
   const googleAuthLoginHandler = async (userDetails) => {
@@ -164,12 +106,27 @@ export default function Register() {
           <form style={{ minWidth: 400 }} onSubmit={handleSubmit}>
             <h3 className="text-center mb-4">Sign Up</h3>
 
-            <div className="mb-3" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <div
+              className="mb-3"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <label htmlFor="avatar">
                 {profilePic ? (
-                  <img src={profilePic} alt="Profile Pic" style={{ width: "170px", height: "170px" }} />
+                  <img
+                    src={profilePic}
+                    alt="Profile Pic"
+                    style={{ width: "170px", height: "170px" }}
+                  />
                 ) : (
-                  <img src={avatar} alt="Default Avatar" style={{ width: "170px", height: "170px" }} />
+                  <img
+                    src={avatar}
+                    alt="Default Avatar"
+                    style={{ width: "170px", height: "170px" }}
+                  />
                 )}
               </label>
               <input
@@ -185,52 +142,63 @@ export default function Register() {
               <label>Username</label>
               <input
                 type="email"
-                className={`form-control ${errors.userName ? 'is-invalid' : ''}`}
+                className={`form-control ${
+                  errors.userName ? "is-invalid" : ""
+                }`}
                 placeholder="example@gmail.com"
                 ref={userName}
                 required
               />
-              {errors.userName && <small className="text-danger">{errors.userName}</small>}
+              {errors.userName && (
+                <small className="text-danger">{errors.userName}</small>
+              )}
             </div>
 
             <div className="mb-3">
               <label>Create Password</label>
               <input
                 type="password"
-                className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                className={`form-control ${
+                  errors.password ? "is-invalid" : ""
+                }`}
                 placeholder="password"
                 ref={password}
                 required
               />
-              {errors.password && <small className="text-danger">{errors.password}</small>}
+              {errors.password && (
+                <small className="text-danger">{errors.password}</small>
+              )}
             </div>
 
             <div className="mb-3">
               <label>Contact Number</label>
               <input
                 type="text"
-                className={`form-control ${errors.contact ? 'is-invalid' : ''}`}
+                className={`form-control ${errors.contact ? "is-invalid" : ""}`}
                 placeholder="+94 123 456 789"
                 ref={contact}
                 required
               />
-              {errors.contact && <small className="text-danger">{errors.contact}</small>}
+              {errors.contact && (
+                <small className="text-danger">{errors.contact}</small>
+              )}
             </div>
 
             <div className="mb-3">
               <label>Address</label>
               <input
                 type="text"
-                className={`form-control ${errors.address ? 'is-invalid' : ''}`}
+                className={`form-control ${errors.address ? "is-invalid" : ""}`}
                 placeholder="123 Main St"
                 ref={address}
                 required
               />
-              {errors.address && <small className="text-danger">{errors.address}</small>}
+              {errors.address && (
+                <small className="text-danger">{errors.address}</small>
+              )}
             </div>
 
             <div className="d-grid">
-
               <input
                 type="submit"
                 className="btn btn-primary"

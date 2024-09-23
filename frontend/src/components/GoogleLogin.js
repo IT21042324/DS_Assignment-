@@ -5,72 +5,78 @@ import { scope } from "../utils/googleAuth";
 import { SignInWithGoogleButton } from "./GoogleAuthComponents";
 
 export const GoogleOAuth = ({ submitHandler, state }) => {
-  const [user, setUser] = useState(null); // Initialize as null
-  const [profile, setProfile] = useState(null); // Initialize as null
-  // const [contacts, setContacts] = useState([]); // Initialize contacts as an empty array
+  const [user, setUser] = useState(null); // Initialize user state
+  const [profile, setProfile] = useState(null); // Initialize profile state
+  const [loading, setLoading] = useState(false); // To handle loading state
 
+  // Google login logic
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
-      setUser(codeResponse);
+      setUser(codeResponse); // Save user information from Google
+      setLoading(false); // Reset loading state
     },
-    onError: (error) => alert("Login Failed:", error),
+    onError: (error) => {
+      alert("Login Failed:", error);
+      setLoading(false); // Reset loading state
+    },
     scope,
   });
 
-  // Log out function to log the user out of Google and set the profile to null
+  // Log out function to reset user and profile
   const logOut = () => {
     googleLogout();
     setProfile(null);
-    // setContacts([]); // Reset contacts on logout
+    setUser(null);
   };
 
+  // Fetch user profile when access token is available
   useEffect(() => {
-    if (user && user.access_token) {
-      fetchUserProfile(user.access_token)
-        .then((res) => setProfile(res.data))
-        .catch((err) => console.log(err));
+    const fetchProfileAndSetAccessToken = async () => {
+      if (user && user.access_token) {
+        try {
+          setLoading(true); // Start loading
+          const res = await fetchUserProfile(user.access_token);
+          const { data } = res;
+          setProfile(data); // Set profile data
+        } catch (err) {
+          alert("Failed to retrieve user profile. Please try again.");
+        } finally {
+          setLoading(false); // End loading
+        }
+      }
+    };
 
-      // fetchUserContacts(user.access_token)
-      //   .then((res) => {
-      //     if (res.data.connections) {
-      //       setContacts(res.data.connections); // Set contacts if data exists
-      //     } else {
-      //       setContacts([]); // Set an empty array if no connections found
-      //     }
-      //   })
-      //   .catch((err) => console.log(err));
-    }
+    fetchProfileAndSetAccessToken();
   }, [user]);
 
+  // Submit user details after profile is fetched
   useEffect(() => {
     if (profile) {
       const userDetails = {
         userName: profile.email,
         image: profile.picture,
         loginType: "googleAuth",
-        googleAuthAccessToken: user.access_token,
+        googleAuthAccessToken: user?.access_token,
       };
 
       submitHandler(userDetails)
-        .then(() => {
-          // Successful login, you can leave this empty if you don't need to handle anything after success
-        })
+        .then(() => {})
         .catch((error) => {
-          // Handle errors if needed
-          console.error("Error during login:", error);
+          console.error("Error during login submission:", error);
         });
     }
   }, [profile]);
 
   return (
     <div>
-      {/* <div> */}
-      {/* <GoogleUserInfo profile={profile} /> */}
-      {/* <SignoutGoogleButton logOut={logOut} /> */}
-      {/* <GoogleContact contacts={contacts || []} /> */}
-      {/* </div> */}
-
-      <SignInWithGoogleButton login={login} state={state} />
+      <SignInWithGoogleButton
+        login={login}
+        state={state}
+        disabled={loading} // Disable button while loading
+      />
+      {loading && <p>Loading...</p>} {/* Show loading message */}
+      {profile && <p>Welcome, {profile.email}!</p>}{" "}
+      {/* Show user's profile info */}
     </div>
   );
 };

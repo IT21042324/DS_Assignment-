@@ -1,13 +1,13 @@
 import React, { memo } from "react";
+import { ActionBanner } from "../../components/Banner";
 import Features from "../../components/Features";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import { ItemMapperHome } from "../../components/ItemMapperHome";
-import { ActionBanner } from "../../components/Banner";
 import { Slider } from "../../components/Slider";
+import { useCartContext } from "../../context/useCartContext";
 import { UseItemContext } from "../../context/useItemContext";
 import { UseUserContext } from "../../context/useUserContext";
-import { useCartContext } from "../../context/useCartContext";
 
 // Memoize Components
 const MemoizedHeader = memo(Header);

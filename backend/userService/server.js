@@ -5,7 +5,6 @@ import express from "express";
 import fs from "fs";
 import https from "https";
 import mongoose from "mongoose";
-import authRouter from "./routes/auth.js";
 import userRouter from "./routes/user.js";
 
 // Load environment variables

@@ -1,0 +1,11 @@
+.popupButtonContainer {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.popupButtonText {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}

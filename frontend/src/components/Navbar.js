@@ -67,7 +67,6 @@ function NavBar() {
           </Link>
         </>
       )}
-
       {!(userRole === "Merchant") ? (
         <Link
           to="/register"

@@ -93,4 +93,3 @@ userSchema.statics.login = async function (
 };
 
 export default mongoose.model("User", userSchema);
-

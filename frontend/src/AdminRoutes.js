@@ -4,6 +4,7 @@ import AddUser from "./pages/Admin/add-user";
 import UserList from "./pages/Admin/UserList";
 import Orderlist from "./pages/Admin/orderlist";
 import AdminProfile from "./pages/Admin/adminprofile";
+import { PageNotFound } from "./pages/Error/PageNotFound";
 
 export function AdminRoutes() {
   return (
@@ -14,6 +15,7 @@ export function AdminRoutes() {
         <Route path="/add-user" element={<AddUser />} />
         <Route path="/orders" element={<Orderlist />} />
         <Route path="/adminprofile" element={<AdminProfile />} />
+        <Route path="/*" element={<PageNotFound />} />
       </Routes>
     </div>
   );

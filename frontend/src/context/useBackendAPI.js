@@ -482,5 +482,36 @@ export function useBackendAPI() {
         tryAgainLaterAlert();
       }
     },
+
+    fetchAccessToken: async function (userName, role = "Buyer") {
+      try {
+        const { data } = await userApi.get(`/access-token/${userName}/${role}`);
+        const { googleAuthAccessToken } = data;
+        console.log("googleAuthAccessToken", googleAuthAccessToken);
+        return googleAuthAccessToken;
+      } catch (err) {
+        consoleError(err);
+        return null;
+      }
+    },
+
+    setGoogleAccessToken: async function (accessToken, userDetails) {
+      try {
+        const { data } = await userApi.patch(`/access-token`, {
+          ...userDetails,
+          googleAuthAccessToken: accessToken,
+        });
+
+        if (data?.googleAuthAccessToken) {
+          setUserInLocalStorage(data);
+          dispatch({ type: "SetUser", payload: [data] });
+          alert("Google Login Successful");
+          return "success";
+        }
+      } catch (err) {
+        consoleError(err);
+        return null;
+      }
+    },
   };
 }

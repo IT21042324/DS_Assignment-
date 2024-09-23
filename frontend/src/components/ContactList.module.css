@@ -1,0 +1,48 @@
+.listContainer {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Keep items in a column */
+    width: 100%;
+    /* Full width */
+    max-width: 500px;
+    /* Set maximum width */
+    background-color: var(--background-paper);
+    /* Use a background color, replace with a valid value */
+    padding: 0;
+    /* Remove padding */
+    margin: 0;
+    /* Remove margin */
+    gap: 2px;
+    /* Add gap between items */
+}
+
+.selectContactsTitleContainer {
+    width: 100%;
+    /* Full width */
+    color: gainsboro;
+    /* White text color */
+    background-color: grey;
+    /* Background color */
+    padding: 8px 18px;
+    /* Padding */
+    display: flex;
+    /* Flexbox for layout */
+    justify-content: space-between;
+    /* Space between elements */
+    align-items: center;
+    /* Center items vertically */
+    height: 45px;
+}
+
+.sendMailIconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 4px;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    color: greenyellow
+}

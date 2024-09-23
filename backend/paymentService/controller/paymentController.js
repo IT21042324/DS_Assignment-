@@ -36,25 +36,26 @@ const getAllPayment = async (req, res) => {
 // This function updates a payment's status
 const updatePayment = async (req, res) => {
   const { paymentID, status } = req.body;
-
   if (!mongoose.Types.ObjectId.isValid(paymentID)) {
     return res.status(400).json({ error: "Invalid payment ID" });
   }
 
   try {
-    const updatedPayment = await Payment.findOneAndUpdate(
-      { _id: paymentID },
-      { status },
-      { new: true, runValidators: true } // Apply validators during the update
-    );
-
-    if (!updatedPayment) {
+    const payment = await Payment.findById(paymentID);
+    if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    res.status(200).json(updatedPayment);
+    payment.status = status;
+    await payment.save();
+
+    res.status(200).json(payment);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (err.name === "ValidationError") {
+      res.status(400).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: err.message });
+    }
   }
 };
 
@@ -89,26 +90,23 @@ const getTotalPaymentPerStore = async (req, res) => {
 
   try {
     const results = await Payment.aggregate([
-      { $unwind: "$itemList" },
-      {
-        $lookup: {
-          from: "items", // Items collection
-          localField: "itemList",
-          foreignField: "_id",
-          as: "itemDetails",
-        },
-      },
-      { $unwind: "$itemDetails" },
-      { $match: { "itemDetails.storeID": storeID } },
+      { $unwind: "$itemList" }, // Unwind the itemList array
+      { $match: { "itemList.storeID": storeID } }, // Match only items from the provided store
       {
         $group: {
-          _id: null,
-          totalAmount: {
+          _id: "$_id", // Group by the payment record (_id) to calculate total per order
+          orderTotal: {
             $sum: {
-              $multiply: ["$itemDetails.price", "$itemDetails.quantity"],
+              $multiply: ["$itemList.itemPrice", "$itemList.itemQuantity"], // Calculate total for each order
             },
           },
-          orderCount: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: null, // Group everything into a single result
+          totalAmount: { $sum: "$orderTotal" }, // Sum all the order totals
+          orderCount: { $sum: 1 }, // Count the number of unique orders
         },
       },
     ]);

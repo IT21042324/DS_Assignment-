@@ -22,6 +22,7 @@ const requireAuth = async (req, res, next) => {
       `https://localhost:8080/api/user/${id}/${role}`,
       { agent: httpsAgent }
     );
+
     const data = await response.json();
 
     req.user = data;

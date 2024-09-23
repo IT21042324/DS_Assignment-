@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Buyer/Home";
+import { Route, Routes } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import Home from "./pages/Buyer/Home";
+import { PageNotFound } from "./pages/Error/PageNotFound";
 
 export function BaseRoutes() {
   return (
@@ -10,6 +11,7 @@ export function BaseRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>
   );

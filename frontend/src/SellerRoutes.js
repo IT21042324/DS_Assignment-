@@ -1,11 +1,11 @@
-import { Routes, Route } from "react-router-dom";
-import Seller from "./pages/Seller/Seller";
-import Profile from "./pages/Seller/Profile";
-import ProductList from "./pages/Seller/ProductList";
-import AddProduct from "./pages/Seller/Add-Product";
-import Store from "./pages/Seller/Store";
-import { Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { UseUserContext } from "./context/useUserContext";
+import { PageNotFound } from "./pages/Error/PageNotFound";
+import AddProduct from "./pages/Seller/Add-Product";
+import ProductList from "./pages/Seller/ProductList";
+import Profile from "./pages/Seller/Profile";
+import Seller from "./pages/Seller/Seller";
+import Store from "./pages/Seller/Store";
 
 export function SellerRoutes() {
   const { getUser } = UseUserContext();
@@ -22,6 +22,7 @@ export function SellerRoutes() {
           path="/store"
           element={!user?.storeID ? <Store /> : <Navigate to="/seller" />}
         />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>
   );

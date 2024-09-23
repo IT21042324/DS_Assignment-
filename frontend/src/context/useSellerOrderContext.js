@@ -7,7 +7,7 @@ export const useSellerOrderContext = () => {
   const sellerOrderContext = useContext(SellerOrderContext);
   const { dispatch, order } = sellerOrderContext;
 
-  const { getUser } = UseUserContext();
+  const { getUser, logoutUser } = UseUserContext();
   const user = getUser();
 
   const { getAllItemsFromOneStore, getStoreItemCount, getTotalSalesAmount } =
@@ -19,6 +19,8 @@ export const useSellerOrderContext = () => {
         const data = await getAllItemsFromOneStore(user.storeID);
         const itemCount = await getStoreItemCount(user.storeID);
         const response = await getTotalSalesAmount(user.storeID);
+
+        console.log(data, itemCount, response);
 
         if (response) {
           const { total = 0, orderCount = 0 } = response; // Destructure safely with default values
@@ -47,7 +49,13 @@ export const useSellerOrderContext = () => {
   }, [dispatch, user]);
 
   const clearOrderState = () => {
-    dispatch({ type: "ClearAll" });
+    const loggedOutStatus = logoutUser();
+    if (loggedOutStatus) {
+      dispatch({ type: "ClearAll" });
+
+      return true;
+    }
+    return false;
   };
 
   return { sellerOrderContext, dispatch, order, clearOrderState };

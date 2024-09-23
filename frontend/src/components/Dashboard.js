@@ -46,6 +46,7 @@ function Dashboard() {
   //The function to logout
   const logoutFunction = () => {
     //To logout the user
+    alert("Logged Out");
     setAdminIsLoggedIn(false);
   };
 

@@ -6,6 +6,8 @@ import "./App.css";
 import { BaseRoutes } from "./BaseRoutes";
 import { BuyerRoutes } from "./BuyerRoutes";
 import { UseUserContext } from "./context/useUserContext";
+import { PageNotFound } from "./pages/Error/PageNotFound";
+import { UnauthorizedEntry } from "./pages/Error/UnauthorizedEntry";
 import { SellerRoutes } from "./SellerRoutes";
 
 // Memoized Components
@@ -38,30 +40,39 @@ export default function App() {
       <GoogleOAuthProvider clientId={CLIENT_ID}>
         <Routes>
           <Route path="/*" element={element} />
+
+          {/* Admin Route with Unauthorized Entry handling */}
           <Route
             path="/admin/*"
             element={
               user1[0]?.role === "Admin" ? (
                 <MemoizedAdminRoutes />
               ) : (
-                <Navigate to="/" />
+                <UnauthorizedEntry />
               )
             }
           />
+
+          {/* Buyer Routes */}
           <Route
             path="/buyer/*"
             element={<MemoizedBuyerRoutes UseUserContext={UseUserContext} />}
           />
+
+          {/* Seller Route with Unauthorized Entry handling */}
           <Route
             path="/seller/*"
             element={
               user1[0]?.role === "Merchant" ? (
                 <MemoizedSellerRoutes />
               ) : (
-                <Navigate to="/" />
+                <UnauthorizedEntry />
               )
             }
           />
+
+          {/* Catch-all route for undefined paths */}
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
       </GoogleOAuthProvider>
     </div>
