@@ -84,11 +84,12 @@ export default function Item(props) {
             userName: user.userName,
           },
         });
-        handleClosePopup();
         // Resetting form state after submission
         setSelectedItemID("");
         setAddedRating(3);
         reviewDesc.current.value = ""; // Clear the input field
+
+        handleClosePopup();
       }
     } else {
       alert("Please provide a review description.");
