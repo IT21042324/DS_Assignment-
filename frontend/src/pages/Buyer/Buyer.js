@@ -38,16 +38,26 @@ export default function Buyer({ UseUserContext, UseStoreContext }) {
     );
 
     if (updatedOrder) {
-      setStatusValue(3);
+      setStatusValue(3); // Set status to "Delivered"
       alert("Order delivery confirmed");
 
       dispatch({
         type: "ConfirmDelivery",
         payload: { _id: selectedOrderId },
       });
+
+      // Reset popup state after confirmation
+      handleClosePopup(); // Close the popup immediately after confirmation
+      setSelectedOrderId(""); // Clear the selected order
     }
   };
 
+  const handleReviewButtonClick = (orderId, storeId) => {
+    setSelectedOrderId(orderId);
+    setStoreID(storeId);
+    setStatusValue(3); // Set to "Delivered" status or any other relevant status for review
+    handleViewItemClick(); // Open the review popup when the user explicitly clicks "Add Seller Review"
+  };
   //To get the rating when the review is submitted
   const [rating, setRating] = useState(3);
 
@@ -162,17 +172,13 @@ export default function Buyer({ UseUserContext, UseStoreContext }) {
                               {data.status === "Delivered" && (
                                 <button
                                   className="btn btn-success"
-                                  onClick={(e) => {
-                                    setSelectedOrderId(data._id);
-                                    setStoreID(data.storeID);
-                                    if (data.status === "Delivered")
-                                      setStatusValue(3);
-                                    else {
-                                      setStatusValue(data.statusValue);
-                                    }
-                                    handleViewItemClick();
-                                  }}
-                                  disabled={data.reviewed}
+                                  onClick={() =>
+                                    handleReviewButtonClick(
+                                      data._id,
+                                      data.storeID
+                                    )
+                                  } // Trigger the review popup only when clicking this button
+                                  disabled={data.reviewed} // Disable if already reviewed
                                 >
                                   {data.reviewed
                                     ? "Review Added"

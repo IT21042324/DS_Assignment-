@@ -151,8 +151,6 @@ const addStoreItem = async (req, res) => {
       return res.status(404).json({ error: "Store not found" });
     }
 
-    console.log("store", store);
-
     store.storeItem.push(item);
     const updatedStore = await store.save();
 
@@ -245,8 +243,6 @@ const deleteStoreItem = async (req, res) => {
 // Add store review
 const addReview = async (req, res) => {
   const { review, storeID, userID, userName, rating } = req.body;
-
-  console.log(review, storeID, userID, userName, rating);
 
   // Sanitize user input
   const sanitizedReview = validator.escape(review);
