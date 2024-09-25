@@ -12,13 +12,13 @@ import {
   userLogin,
   userSignUp,
 } from "../controller/userController.js";
+import { disableCache } from "../middleware/cacheControl.js";
 import { csrfProtection } from "../middleware/csrfProtetion.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import {
   validateUserLogin,
   validateUserSignUp,
 } from "../validation/validation.js";
-import { disableCache } from "../middleware/cacheControl.js";
 
 const router = Router();
 
