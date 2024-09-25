@@ -171,9 +171,6 @@ function Dashboard() {
                       <th scope="col" style={{ textAlign: "center" }}>
                         Contact No
                       </th>
-                      <th scope="col" style={{ textAlign: "center" }}>
-                        Address
-                      </th>
                       <th
                         scope="col"
                         className="text-end"

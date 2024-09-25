@@ -7,6 +7,7 @@ import https from "https";
 import mongoose from "mongoose";
 import userRouter from "./routes/user.js";
 import helmet from "helmet";
+import permissionsPolicy from "permissions-policy";
 
 // Load environment variables
 dotenv.config();
@@ -32,7 +33,71 @@ app.use(
   })
 );
 
-app.use(helmet()); // Use helmet to set security headers // Use helmet to set security headers
+app.disable("x-powered-by");
+
+// Security headers using Helmet with a comprehensive set of protections
+app.use(
+  helmet({
+    frameguard: { action: "SAMEORIGIN" }, // Protect against clickjacking
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "https://trusted-scripts.com",
+          "https://www.paypal.com",
+          "https://accounts.google.com",
+        ],
+        styleSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "'sha256-<hashed-style-content>'",
+        ],
+        frameSrc: [
+          "'self'",
+          "https://www.paypal.com",
+          "https://cardinalcommerce.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "http://localhost:3000",
+          "https://www.sandbox.paypal.com",
+          "https://www.googleapis.com",
+          "https://people.googleapis.com",
+        ],
+        frameAncestors: ["'self'"],
+        reportTo: "/csp-violation-report-endpoint",
+      },
+    },
+    referrerPolicy: { policy: "no-referrer" },
+    noSniff: true,
+    ieNoOpen: true,
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    xssFilter: true,
+    dnsPrefetchControl: { allow: false },
+    permittedCrossDomainPolicies: { policy: "none" },
+    expectCt: {
+      maxAge: 86400,
+      enforce: true,
+    },
+  })
+);
+
+// Permissions Policy middleware to restrict certain browser features
+app.use(
+  permissionsPolicy({
+    features: {
+      geolocation: ["self"],
+      camera: ["none"],
+      microphone: ["none"],
+      fullscreen: ["self"],
+    },
+  })
+);
 
 // SSL certificate options
 const sslOptions = {

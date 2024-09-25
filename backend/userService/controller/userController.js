@@ -5,8 +5,8 @@ import logger from "../logger.js"; // Import logger
 import userModel from "../models/User.js";
 
 // To generate a token
-const createToken = (id) => {
-  return jwt.sign({ id }, process.env.SECRET, { expiresIn: "3d" });
+const createToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.SECRET, { expiresIn: "3d" });
 };
 
 // To generate a CSRF token
@@ -33,7 +33,7 @@ const userLogin = async (req, res) => {
       googleAuthAccessToken
     );
 
-    const token = createToken(user._id);
+    const token = createToken(user._id, role);
     const csrfToken = createCsrfToken();
 
     // Set the JWT as a HttpOnly cookie
@@ -78,7 +78,7 @@ const userSignUp = async (req, res) => {
       role
     );
 
-    const token = createToken(user._id);
+    const token = createToken(user._id, role);
     const csrfToken = createCsrfToken();
 
     // Set the JWT as a HttpOnly cookie

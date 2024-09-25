@@ -22,11 +22,14 @@ const requireAuth = async (req, res, next) => {
       `https://localhost:8080/api/user/${id}/${role}`,
       { agent: httpsAgent }
     );
+
     const data = await response.json();
 
     req.user = data;
+
     next();
   } catch (error) {
+    console.log("error Here");
     console.log(error);
     res.status(401).json({ error: "Token expired or invalid" });
   }

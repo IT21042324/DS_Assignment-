@@ -1,49 +1,114 @@
-const https = require("https"); // Import the https module
-const fs = require("fs"); // Import the File System module
+const https = require("https");
+const fs = require("fs");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
-const cookieParser = require("cookie-parser"); // Add this line
-const helmet = require("helmet"); // Import helmet for security headers
+const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const permissionsPolicy = require("permissions-policy"); // Import permissions-policy middleware
 
 // Creating an Express.js app
 const app = express();
 
-app.use(cookieParser()); // Add this line to parse cookies
-
+app.use(cookieParser()); // Parse cookies
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+// CORS configuration to allow requests from localhost during development
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests from localhost domains
       if (origin === undefined || origin.includes("localhost")) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // Allow credentials (cookies, etc.)
+    credentials: true,
   })
 );
-// Use helmet to set security headers
-app.use(helmet()); // This will include the 'X-Content-Type-Options: nosniff' header
 
-const PORT = process.env.PORT; // Get port number from environment variables
-const URI = process.env.URI; // Get MongoDB URI from environment variables
+app.disable("x-powered-by");
+
+// Security headers using Helmet with a comprehensive set of protections
+app.use(
+  helmet({
+    frameguard: { action: "SAMEORIGIN" }, // Protect against clickjacking
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "https://trusted-scripts.com",
+          "https://www.paypal.com",
+          "https://accounts.google.com",
+        ],
+        styleSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "'sha256-<hashed-style-content>'",
+        ],
+        frameSrc: [
+          "'self'",
+          "https://www.paypal.com",
+          "https://cardinalcommerce.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "http://localhost:3000",
+          "https://www.sandbox.paypal.com",
+          "https://www.googleapis.com",
+          "https://people.googleapis.com",
+        ],
+        frameAncestors: ["'self'"],
+        reportTo: "/csp-violation-report-endpoint",
+      },
+    },
+    referrerPolicy: { policy: "no-referrer" },
+    noSniff: true,
+    ieNoOpen: true,
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    xssFilter: true,
+    dnsPrefetchControl: { allow: false },
+    permittedCrossDomainPolicies: { policy: "none" },
+    expectCt: {
+      maxAge: 86400,
+      enforce: true,
+    },
+  })
+);
+
+// Permissions Policy middleware to restrict certain browser features
+app.use(
+  permissionsPolicy({
+    features: {
+      geolocation: ["self"],
+      camera: ["none"],
+      microphone: ["none"],
+      fullscreen: ["self"],
+    },
+  })
+);
+
+// Create HTTPS options with SSL certificate
+const PORT = process.env.PORT;
+const URI = process.env.URI;
 const options = {
-  key: fs.readFileSync("../certificate/localhost-key.pem"), // Path to the private key file
-  cert: fs.readFileSync("../certificate/localhost.pem"), // Path to the certificate file
+  key: fs.readFileSync("../certificate/localhost-key.pem"),
+  cert: fs.readFileSync("../certificate/localhost.pem"),
 };
 
 // Connecting to the MongoDB database and starting the https server
 mongoose
-  .connect(URI, { useUnifiedTopology: true })
+  .connect(URI, { useUnifiedTopology: true, useNewUrlParser: true })
   .then(() => {
     console.log("Connection to MongoDB successful");
 
-    // Creating https server with SSL certificate
     https.createServer(options, app).listen(PORT, () => {
       console.log(`Secure server is running on https://localhost:${PORT}`);
     });
@@ -54,5 +119,10 @@ mongoose
 
 // Importing route modules
 const paymentRouter = require("./routes/payment");
-// Adding a route for handling payment-related requests
 app.use("/api/payment", paymentRouter);
+
+// CSP Violation Reporting Endpoint
+app.post("/csp-violation-report-endpoint", (req, res) => {
+  console.log("CSP Violation: ", req.body);
+  res.status(204).end();
+});

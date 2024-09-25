@@ -2,6 +2,13 @@ const router = require("express").Router();
 const requireAuth = require("../middleware/requireAuth");
 const csrfProtection = require("../middleware/csrfProtection");
 const disableCache = require("../middleware/cacheControl");
+const rateLimit = require("express-rate-limit");
+
+const reqLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 10, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests, please try again later.",
+});
 
 const {
   postItem,
@@ -17,13 +24,13 @@ const {
 } = require("../controller/itemController");
 
 // Route for getting all items (read-only, no CSRF protection needed)
-router.get("/", disableCache, getAllItems);
+router.get("/", disableCache, reqLimiter, getAllItems);
 
 // Route for getting a specific item by ID (read-only, no CSRF protection needed)
 router.get("/findOne", disableCache, getOneItem);
 
 // Route for getting items with pagination (read-only, no CSRF protection needed)
-router.get("/pagination", disableCache, getAllItemsWithPagination);
+router.get("/pagination", disableCache, reqLimiter, getAllItemsWithPagination);
 
 // Use the authentication middleware for all routes below
 router.use(requireAuth);
@@ -44,7 +51,13 @@ router.patch("/deleteReview", csrfProtection, disableCache, deleteReview);
 router.delete("/deleteItem/:id", csrfProtection, disableCache, deleteItem);
 
 // Route for updating an item (state-changing, requires CSRF protection)
-router.patch("/updateItem", csrfProtection, disableCache, updateItem);
+router.patch(
+  "/updateItem",
+  csrfProtection,
+  disableCache,
+  reqLimiter,
+  updateItem
+);
 
 // Route for deleting all items for a specific store by store ID (state-changing, requires CSRF protection)
 router.delete(

@@ -1,17 +1,23 @@
-// Importing Store model
+// Importing Store model and validator for sanitization
 let Store = require("../models/Store");
 let logger = require("../logger");
+let validator = require("validator");
 let mongoose = require("mongoose");
 
 // Creating a new store in the database
 const createStore = async (req, res) => {
   const { storeName, location, merchantID } = req.body;
 
-  // Creating a new Store object with the provided data
+  // Sanitize input data
+  const sanitizedStoreName = validator.escape(storeName);
+  const sanitizedLocation = validator.escape(location);
+  const sanitizedMerchantID = validator.escape(merchantID);
+
+  // Creating a new Store object with the sanitized data
   const newStore = new Store({
-    storeName,
-    merchantID,
-    location,
+    storeName: sanitizedStoreName,
+    merchantID: sanitizedMerchantID,
+    location: sanitizedLocation,
   });
 
   // Saving the new store to the database
@@ -19,11 +25,9 @@ const createStore = async (req, res) => {
     .save()
     .then(() => {
       logger.info(`Store created successfully: ${newStore}`);
-      // Sending the newly created store object as response
       res.json(newStore);
     })
     .catch((err) => {
-      // If there is an error, logging the error message and sending it as response
       logger.error(`Error creating store: ${err.message}`);
       res.send(err.message);
     });
@@ -34,12 +38,10 @@ const getAllStore = async (req, res) => {
   await Store.find()
     .then((store) => {
       logger.info("All stores retrieved successfully.");
-      // Sending all store objects as response
       res.json(store);
     })
     .catch((err) => {
       logger.error(`Error retrieving stores: ${err.message}`);
-      // If there is an error, sending the error message as response
       res.send(err.message);
     });
 };
@@ -47,6 +49,10 @@ const getAllStore = async (req, res) => {
 // Updating basic store info details
 const updateStore = async (req, res) => {
   const { storeName, location, storeID } = req.body;
+
+  // Sanitize input data
+  const sanitizedStoreName = validator.escape(storeName);
+  const sanitizedLocation = validator.escape(location);
 
   if (!mongoose.Types.ObjectId.isValid(storeID)) {
     logger.error(`Invalid store ID: ${storeID}`);
@@ -60,8 +66,8 @@ const updateStore = async (req, res) => {
       return res.status(404).json({ error: "Store not found" });
     }
 
-    store.storeName = storeName;
-    store.location = location;
+    store.storeName = sanitizedStoreName;
+    store.location = sanitizedLocation;
 
     const updatedStore = await store.save();
     logger.info(`Store updated successfully: ${updatedStore}`);
@@ -75,14 +81,11 @@ const updateStore = async (req, res) => {
 // Deleting a store from the database
 const deleteStore = async (req, res) => {
   try {
-    // Finding the store by the given ID and deleting it from the database
     const data = await Store.findByIdAndDelete(req.params.id);
     logger.info(`Store deleted successfully: ${data}`);
-    // Sending the deleted store object as response
     res.json(data);
   } catch (err) {
     logger.error(`Error deleting store: ${err.message}`);
-    // If there is an error, sending the error message as response
     res.send(err.message);
   }
 };
@@ -92,13 +95,11 @@ const getOneStore = async (req, res) => {
   const id = req.params.id;
 
   try {
-    // Finding the store by the given ID, excluding the image field
     const data = await Store.findById(id).select("-storeItem.image");
-    logger.info(`Store retrieved by Name: ${data?.storeName}`);
+    logger.info(`Store retrieved by ID: ${data._storeName}`);
     res.json(data);
   } catch (err) {
     logger.error(`Error retrieving store by ID: ${err.message}`);
-    // If there is an error, sending the error message as response
     res.send(err.message);
   }
 };
@@ -106,14 +107,11 @@ const getOneStore = async (req, res) => {
 // Getting the description of a store by ID
 const getStoreDescription = async (req, res) => {
   try {
-    // Finding the store by the given ID and selecting the 'description' field
     const data = await Store.findById(req.params.id, { description });
     logger.info(`Store description retrieved successfully: ${data}`);
-    // Sending the store's description as response
     res.json(data);
   } catch (err) {
     logger.error(`Error retrieving store description: ${err.message}`);
-    // If there is an error, sending the error message as response
     res.send(err.message);
   }
 };
@@ -123,7 +121,6 @@ const getStoreItemCount = async (req, res) => {
   const storeID = req.params.id;
 
   try {
-    // Find the store with the specified ID, excluding the itemImage field
     const data = await Store.findOne({ _id: storeID }).select(
       "-storeItem.itemImage"
     );
@@ -154,6 +151,8 @@ const addStoreItem = async (req, res) => {
       return res.status(404).json({ error: "Store not found" });
     }
 
+    console.log("store", store);
+
     store.storeItem.push(item);
     const updatedStore = await store.save();
 
@@ -174,6 +173,11 @@ const modifyStoreItem = async (req, res) => {
     return res.status(400).json({ error: "Invalid store ID" });
   }
 
+  if (!item || !item._id) {
+    logger.error("Invalid or missing item ID");
+    return res.status(400).json({ error: "Invalid or missing item ID" });
+  }
+
   try {
     const store = await Store.findById(storeID);
     if (!store) {
@@ -189,10 +193,13 @@ const modifyStoreItem = async (req, res) => {
       return res.status(404).json({ error: "Item not found in store" });
     }
 
+    // Directly update the item in the storeItem array without .toObject()
     store.storeItem[itemIndex] = {
-      ...store.storeItem[itemIndex].toObject(),
-      ...item,
+      ...store.storeItem[itemIndex], // Preserve existing properties
+      ...item, // Overwrite with new item data
     };
+
+    // Save the updated store
     const updatedStore = await store.save();
 
     logger.info(`Store item modified successfully: ${updatedStore}`);
@@ -239,6 +246,12 @@ const deleteStoreItem = async (req, res) => {
 const addReview = async (req, res) => {
   const { review, storeID, userID, userName, rating } = req.body;
 
+  console.log(review, storeID, userID, userName, rating);
+
+  // Sanitize user input
+  const sanitizedReview = validator.escape(review);
+  const sanitizedUserName = validator.escape(userName);
+
   if (!mongoose.Types.ObjectId.isValid(storeID)) {
     logger.error(`Invalid store ID: ${storeID}`);
     return res.status(400).json({ error: "Invalid store ID" });
@@ -251,7 +264,12 @@ const addReview = async (req, res) => {
       return res.status(404).json({ error: "Store not found" });
     }
 
-    store.reviews.push({ userID, userName, rating, review });
+    store.reviews.push({
+      userID,
+      userName: sanitizedUserName,
+      rating,
+      review: sanitizedReview,
+    });
     const updatedStore = await store.save();
 
     logger.info(`Review added successfully: ${updatedStore}`);
@@ -270,8 +288,9 @@ module.exports = {
   addReview,
   deleteStore,
   getOneStore,
-  getStoreItemCount,
+  getStoreDescription,
   addStoreItem,
-  deleteStoreItem,
   modifyStoreItem,
+  deleteStoreItem,
+  getStoreItemCount,
 };

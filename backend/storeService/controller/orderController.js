@@ -1,26 +1,43 @@
 let Order = require("../models/Order");
-let logger = require("../logger.js"); // Import the logger
+let logger = require("../logger.js");
+let validator = require("validator");
 
 // Create a new order
 const createOrder = async (req, res) => {
   const { userID, storeID, paymentID, itemList } = req.body;
-  logger.info("Creating a new order", { userID, storeID, paymentID });
 
+  // Sanitize input
+  const sanitizedUserID = validator.escape(userID);
+  const sanitizedStoreID = validator.escape(storeID);
+  const sanitizedPaymentID = validator.escape(paymentID);
+
+  // Ensure itemList contents are also sanitized
+  const sanitizedItemList = itemList.map((item) => ({
+    itemName: validator.escape(item.itemName),
+    itemPrice: item.itemPrice, // assumed its anumber obvi so didnt add sanitization
+    itemQuantity: item.itemQuantity, // this tooo
+  }));
+
+  logger.info("Creating a new order", {
+    sanitizedUserID,
+    sanitizedStoreID,
+    sanitizedPaymentID,
+  });
 
   const newOrder = new Order({
-    userID,
-    paymentID,
-    storeID,
-    itemList,
+    userID: sanitizedUserID,
+    storeID: sanitizedStoreID,
+    paymentID: sanitizedPaymentID,
+    itemList: sanitizedItemList,
   });
 
   try {
-    const data = await newOrder.save(); // Save the new order to the database
+    const data = await newOrder.save();
     logger.info("Order created successfully", { orderID: data._id });
-    res.json(data); // Send a JSON response containing the newly created order data
+    res.json(data);
   } catch (err) {
     logger.error("Error creating order", { error: err.message });
-    res.json(err.message); // Send a JSON response with the error message if there was an error saving the order
+    res.json(err.message);
   }
 };
 
@@ -29,12 +46,12 @@ const getAllOrder = async (req, res) => {
   logger.info("Fetching all orders");
 
   try {
-    const data = await Order.find(); // Find all orders in the database
+    const data = await Order.find();
     logger.info("All orders retrieved successfully", { count: data.length });
-    res.json(data); // Send a JSON response containing all the orders
+    res.json(data);
   } catch (err) {
     logger.error("Error fetching all orders", { error: err.message });
-    res.send(err.message); // Send a response with the error message if there was an error getting the orders
+    res.send(err.message);
   }
 };
 
@@ -42,44 +59,62 @@ const getAllOrder = async (req, res) => {
 const updateOrder = async (req, res) => {
   const { orderID, status } = req.body;
 
-  logger.info("Updating order", { orderID, status });
+  // Sanitize inputs
+  const sanitizedOrderID = validator.escape(orderID);
+  const sanitizedStatus = validator.escape(status);
+
+  logger.info("Updating order", {
+    orderID: sanitizedOrderID,
+    status: sanitizedStatus,
+  });
 
   try {
-    const updateStore = { status };
-    const update = await Order.findByIdAndUpdate(orderID, updateStore, {
-      new: true,
-    }); // Find the order by ID and update its status
-    logger.info("Order updated successfully", { orderID });
-    res.status(200).send({ Status: "Order updated", order: update }); // Send a success response with the updated order data
+    const updateStore = { status: sanitizedStatus };
+    const update = await Order.findByIdAndUpdate(
+      sanitizedOrderID,
+      updateStore,
+      {
+        new: true,
+      }
+    );
+    logger.info("Order updated successfully", { orderID: sanitizedOrderID });
+    res.status(200).send({ Status: "Order updated", order: update });
   } catch (err) {
-    logger.error("Error updating order", { orderID, error: err.message });
-    res.status(500).send({ status: "Error with updating data" }); // Send an error response if there was an error updating the order
+    logger.error("Error updating order", {
+      orderID: sanitizedOrderID,
+      error: err.message,
+    });
+    res.status(500).send({ status: "Error with updating data" });
   }
 };
 
 // Get a single order by ID
 const getOneOrder = async (req, res) => {
-  logger.info("Fetching order by ID", { orderID: req.params.id });
+  const sanitizedOrderID = validator.escape(req.params.id); // Sanitize the order ID from URL parameters
+  logger.info("Fetching order by ID", { orderID: sanitizedOrderID });
 
   try {
-    const order = await Order.findById(req.params.id); // Find the order by ID
-    logger.info("Order retrieved successfully", { orderID: req.params.id });
-    res.status(200).send(order); // Send a JSON response with the order data
+    const order = await Order.findById(sanitizedOrderID);
+    logger.info("Order retrieved successfully", { orderID: sanitizedOrderID });
+    res.status(200).send(order);
   } catch (err) {
-    logger.error("Error fetching order", { orderID: req.params.id, error: err.message });
+    logger.error("Error fetching order", {
+      orderID: sanitizedOrderID,
+      error: err.message,
+    });
     res
       .status(500)
-      .send({ status: "Error Fetching Order", error: err.message }); // Send an error response if there was an error getting the order
+      .send({ status: "Error Fetching Order", error: err.message });
   }
 };
 
 // Get all orders for a specific store
 const getAllOrderPerStore = async (req, res) => {
-  logger.info("Fetching all orders for store", { storeID: req.params.id });
+  const sanitizedStoreID = validator.escape(req.params.id); // Sanitize store ID
+  logger.info("Fetching all orders for store", { storeID: sanitizedStoreID });
 
   try {
-    // Find all orders for the specified store, excluding the itemImage field
-    const orders = await Order.find({ storeID: req.params.id }).select(
+    const orders = await Order.find({ storeID: sanitizedStoreID }).select(
       "-itemList.itemImage"
     );
 
@@ -91,11 +126,16 @@ const getAllOrderPerStore = async (req, res) => {
       ),
     }));
 
-    logger.info("Orders retrieved successfully for store", { storeID: req.params.id });
-    res.json(result); // Send a JSON response containing all the orders for the specified store
+    logger.info("Orders retrieved successfully for store", {
+      storeID: sanitizedStoreID,
+    });
+    res.json(result);
   } catch (error) {
-    logger.error("Error fetching orders for store", { storeID: req.params.id, error: error.message });
-    res.status(500).json({ error: "Failed to get orders for store" }); // Send an error response if there was an error getting the orders for the store
+    logger.error("Error fetching orders for store", {
+      storeID: sanitizedStoreID,
+      error: error.message,
+    });
+    res.status(500).json({ error: "Failed to get orders for store" });
   }
 };
 
@@ -103,18 +143,29 @@ const getAllOrderPerStore = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   const { orderID, status } = req.body;
 
-  logger.info("Updating order status", { orderID, status });
+  const sanitizedOrderID = validator.escape(orderID);
+  const sanitizedStatus = validator.escape(status);
+
+  logger.info("Updating order status", {
+    orderID: sanitizedOrderID,
+    status: sanitizedStatus,
+  });
 
   try {
     const data = await Order.findByIdAndUpdate(
-      orderID,
-      { status },
+      sanitizedOrderID,
+      { status: sanitizedStatus },
       { new: true }
     );
-    logger.info("Order status updated successfully", { orderID });
+    logger.info("Order status updated successfully", {
+      orderID: sanitizedOrderID,
+    });
     res.json(data);
   } catch (err) {
-    logger.error("Error updating order status", { orderID, error: err.message });
+    logger.error("Error updating order status", {
+      orderID: sanitizedOrderID,
+      error: err.message,
+    });
     res.send(err.message);
   }
 };
@@ -128,7 +179,9 @@ const getOrderCountForAdmin = async (req, res) => {
     logger.info("Order count retrieved successfully", { count: orderCount });
     res.json({ orderCount });
   } catch (err) {
-    logger.error("Error fetching order count for admin", { error: err.message });
+    logger.error("Error fetching order count for admin", {
+      error: err.message,
+    });
     res.send(err.message);
   }
 };
@@ -138,9 +191,11 @@ const getAllStoreOrders = async (req, res) => {
   logger.info("Fetching all orders for all stores");
 
   try {
-    const data = await Order.find().select("-itemList.itemImage"); // Get all orders from MongoDB database using Mongoose, excluding the itemImage field
-    logger.info("All store orders retrieved successfully", { count: data.length });
-    res.json(data); // Send orders in response
+    const data = await Order.find().select("-itemList.itemImage");
+    logger.info("All store orders retrieved successfully", {
+      count: data.length,
+    });
+    res.json(data);
   } catch (err) {
     logger.error("Error fetching all store orders", { error: err.message });
     res.send(err.message);
@@ -149,30 +204,43 @@ const getAllStoreOrders = async (req, res) => {
 
 // Get all orders for a particular user
 const getAllUserOrders = async (req, res) => {
-  logger.info("Fetching all orders for user", { userID: req.params.id });
+  const sanitizedUserID = validator.escape(req.params.id); // Sanitize the user ID from URL parameters
+  logger.info("Fetching all orders for user", { userID: sanitizedUserID });
 
   try {
-    const data = await Order.find({ userID: req.params.id });
-    logger.info("Orders retrieved successfully for user", { userID: req.params.id, count: data.length });
+    const data = await Order.find({ userID: sanitizedUserID });
+    logger.info("Orders retrieved successfully for user", {
+      userID: sanitizedUserID,
+      count: data.length,
+    });
     res.json(data);
   } catch (err) {
-    logger.error("Error fetching user orders", { userID: req.params.id, error: err.message });
+    logger.error("Error fetching user orders", {
+      userID: sanitizedUserID,
+      error: err.message,
+    });
     res.send(err.message);
   }
 };
 
 // Set the reviewed status of an order
 const setReviewStatus = async (req, res) => {
-  logger.info("Setting review status for order", { orderID: req.params.id });
+  const sanitizedOrderID = validator.escape(req.params.id); // Sanitize the order ID from URL parameters
+  logger.info("Setting review status for order", { orderID: sanitizedOrderID });
 
   try {
-    const data = await Order.findByIdAndUpdate(req.params.id, {
+    const data = await Order.findByIdAndUpdate(sanitizedOrderID, {
       reviewed: true,
     });
-    logger.info("Review status set successfully for order", { orderID: req.params.id });
+    logger.info("Review status set successfully for order", {
+      orderID: sanitizedOrderID,
+    });
     res.json(data);
   } catch (err) {
-    logger.error("Error setting review status for order", { orderID: req.params.id, error: err.message });
+    logger.error("Error setting review status for order", {
+      orderID: sanitizedOrderID,
+      error: err.message,
+    });
     res.send(err.message);
   }
 };

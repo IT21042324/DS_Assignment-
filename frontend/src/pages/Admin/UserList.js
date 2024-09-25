@@ -2,33 +2,39 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import SideMenu from "../../components/SideMenu";
-import { faDashboard, faGear, faListSquares, faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
+import {
+  faDashboard,
+  faGear,
+  faListSquares,
+  faUser,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function UserList() {
   return (
     <div>
       <section className="sideMenu">
         <div className="logo">
-        <Link
+          <Link
             to="/admin"
             style={{
-            textDecoration: "none",
-            color: "white",
-            fontSize: 50,
-            paddingTop: 20,
-            display: "flex",
-            justifyContent: "center",
+              textDecoration: "none",
+              color: "white",
+              fontSize: 50,
+              paddingTop: 20,
+              display: "flex",
+              justifyContent: "center",
             }}
-        >
+          >
             RB&NS
-        </Link>
+          </Link>
         </div>
         <div className="items">
-        <SideMenu to="/admin" icon={faDashboard} label="Dashboard" />
-        <SideMenu to="/admin/orders" icon={faListSquares} label="Orders" />
-        <SideMenu to="/admin/adminprofile" icon={faUser} label="Profile" />
-        <SideMenu to="/admin/user" icon={faUsers} label="Users" />
-        <SideMenu to="/admin/add-user" icon={faGear} label="Add-User" />
+          <SideMenu to="/admin" icon={faDashboard} label="Dashboard" />
+          <SideMenu to="/admin/orders" icon={faListSquares} label="Orders" />
+          <SideMenu to="/admin/adminprofile" icon={faUser} label="Profile" />
+          <SideMenu to="/admin/user" icon={faUsers} label="Users" />
+          <SideMenu to="/admin/add-user" icon={faGear} label="Add-User" />
         </div>
       </section>
       <section className="main-wrap">
@@ -66,7 +72,6 @@ export default function UserList() {
                     <th scope="col">User Name</th>
                     <th scope="col">Password</th>
                     <th scope="col">Contact No</th>
-                    <th scope="col">Address</th>
                     <th scope="col">Image</th>
                     <th scope="col">Role</th>
 

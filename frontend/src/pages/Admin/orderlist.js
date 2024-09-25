@@ -90,7 +90,6 @@ export default function Orderlist() {
                     <th scope="col">Order ID</th>
                     <th scope="col">Payment ID</th>
                     <th scope="col">Store ID</th>
-                    <th scope="col">Address</th>
                     <th scope="col">Item List</th>
                     <th scope="col">Order Status</th>
                     <th scope="col" className="text-center">
@@ -105,7 +104,6 @@ export default function Orderlist() {
                         <td scope="col">{data._id.slice(-4)}</td>
                         <td>{data.paymentID.slice(-4)}</td>
                         <td>{data.storeID.slice(-4)}</td>
-                        <td>{data.address}</td>
                         <td>
                           {data.itemList.map((itm) => itm.itemName).join(", ")}
                         </td>

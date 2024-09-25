@@ -165,7 +165,11 @@ export default function ProductList() {
                           </button>
                           &nbsp; &nbsp; &nbsp; &nbsp;
                           <button
-                            style={{ border: "none", background: "none" }}
+                            style={{
+                              border: "none",
+                              background: "none",
+                              cursor: "pointer",
+                            }}
                             onClick={(e) => deleteItem(dat._id)}
                           >
                             <FontAwesomeIcon icon={faTrash} />

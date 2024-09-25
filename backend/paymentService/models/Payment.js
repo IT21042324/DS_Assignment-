@@ -38,7 +38,9 @@ paymentSchema.post("save", function (doc) {
 // Middleware to log errors during save
 paymentSchema.post("save", function (error, doc, next) {
   if (error) {
-    logger.error("Error occurred while saving payment", { error: error.message });
+    logger.error("Error occurred while saving payment", {
+      error: error.message,
+    });
   }
   next();
 });
@@ -57,14 +59,18 @@ paymentSchema.post("findOneAndUpdate", function (doc) {
 // Middleware to log errors during update
 paymentSchema.post("findOneAndUpdate", function (error, doc, next) {
   if (error) {
-    logger.error("Error occurred while updating payment", { error: error.message });
+    logger.error("Error occurred while updating payment", {
+      error: error.message,
+    });
   }
   next();
 });
 
 // Middleware to log before deleting a payment
 paymentSchema.pre("findByIdAndDelete", function (next) {
-  logger.info("Attempting to delete payment", { paymentID: this.getQuery()._id });
+  logger.info("Attempting to delete payment", {
+    paymentID: this.getQuery()._id,
+  });
   next();
 });
 
@@ -78,7 +84,9 @@ paymentSchema.post("findByIdAndDelete", function (doc) {
 // Middleware to log errors during delete
 paymentSchema.post("findByIdAndDelete", function (error, doc, next) {
   if (error) {
-    logger.error("Error occurred while deleting payment", { error: error.message });
+    logger.error("Error occurred while deleting payment", {
+      error: error.message,
+    });
   }
   next();
 });

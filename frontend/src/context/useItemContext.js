@@ -13,7 +13,7 @@ export const UseItemContext = () => {
       try {
         // Fetching data from API with pagination using the proxy path
         const { data } = await axios.get(
-          `/api2/product/pagination?page=${page}&limit=10`, // Using proxy path instead of localhost URL
+          `/api2/product/pagination?page=${page}&limit=20`, // Using proxy path instead of localhost URL
           {
             withCredentials: true, // Send cookies with requests (including the JWT token)
             headers: { "x-csrf-token": getCsrfToken() }, // Adding CSRF token if required

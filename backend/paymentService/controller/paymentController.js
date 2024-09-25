@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const createPayment = async (req, res) => {
   const { amount, itemList, userID } = req.body;
 
+  console.log(amount, itemList, userID);
+
   const newPayment = new Payment({
     amount,
     itemList,
@@ -15,6 +17,7 @@ const createPayment = async (req, res) => {
     const data = await newPayment.save();
     res.status(201).json(data); // 201 status code for successful creation
   } catch (err) {
+    console.log(err);
     if (err.name === "ValidationError") {
       res.status(400).json({ error: err.message }); // Return validation errors
     } else {

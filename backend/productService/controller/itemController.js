@@ -233,15 +233,31 @@ const deleteAllItemsFromStore = async (req, res) => {
 
 // Get all items with pagination
 const getAllItemsWithPagination = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  // Parse and validate the page number
+  let page = parseInt(req.query.page) || 1;
+  if (isNaN(page) || page < 1) {
+    return res.status(400).json({ error: "Invalid page number" });
+  }
+
+  // Parse and validate the limit number
+  let limit = parseInt(req.query.limit) || 10;
+  if (isNaN(limit) || limit < 1 || limit > 20) {
+    return res
+      .status(400)
+      .json({ error: "Invalid limit value (must be between 1 and 20)" });
+  }
+
   const skip = (page - 1) * limit;
 
   try {
+    // Fetch the paginated data and the total count of items
     const data = await itemModel.find().skip(skip).limit(limit);
     const totalItems = await itemModel.countDocuments();
 
+    // Log successful operation
     logger.info("Fetched items with pagination", { page, limit });
+
+    // Send paginated response
     res.json({
       items: data,
       currentPage: page,
@@ -249,6 +265,7 @@ const getAllItemsWithPagination = async (req, res) => {
       totalItems,
     });
   } catch (err) {
+    // Log error and return server error response
     logger.error("Error fetching items with pagination", {
       error: err.message,
       page,
